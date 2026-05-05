@@ -190,6 +190,8 @@ define("PLUS_PRODUCTION",%PLUS_PRODUCTION%);
 define("MEDALINTERVAL",%MEDALINTERVAL%);
 // ***** Great Workshop
 define("GREAT_WKS",%GREAT_WKS%);
+// ***** Great Warehouse/Granary
+define("GREAT_WHS",false);
 // ***** Tourn threshold
 define("TS_THRESHOLD",%TS_THRESHOLD%);  
 
