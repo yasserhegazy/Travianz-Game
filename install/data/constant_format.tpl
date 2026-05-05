@@ -18,7 +18,7 @@
 // (0) = disabled
 define("ERROR_REPORT","%ERRORREPORT%");
 %ERROR%
-define('AUTOMATION_LOCK_FILE_NAME', 'automation.lck');
+define('AUTOMATION_LOCK_FILE_NAME', 'var/automation.lck');
 
 //////////////////////////////////
 // *****  SERVER SETTINGS  *****//
