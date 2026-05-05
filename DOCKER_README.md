@@ -147,15 +147,6 @@ Enter the root password from your `.env` file.
 
 ## Troubleshooting
 
-### Installation Files Not Writable
-
-If you get permission errors during installation:
-
-```bash
-docker exec -it travianz-web chown -R www-data:www-data /var/www/html
-docker exec -it travianz-web chmod -R 777 /var/www/html/var
-```
-
 ### Database Connection Failed
 
 1. Make sure the database container is running:

@@ -28,7 +28,7 @@ docker compose up -d
 
 Then open:
 
-- `http://localhost:8080/install`
+- `http://localhost:8080/install` (The installer will automatically set up the correct permissions and initialize the database).
 
 Detailed container guide: [DOCKER_README.md](DOCKER_README.md)
 
