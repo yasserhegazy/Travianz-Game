@@ -35,3 +35,13 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Video files (debug recordings)
+*.mp4
+
+# IDE and tool caches
+.react-doctor/
+.claude/
+
+# Development artifacts
+*.lck

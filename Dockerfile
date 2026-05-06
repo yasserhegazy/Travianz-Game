@@ -36,5 +36,10 @@ RUN sed -i 's!/var/www/html!/var/www/html!g' /etc/apache2/sites-available/000-de
 # Expose Apache port
 EXPOSE 80
 
+# Setup Entrypoint
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
 # Start Apache
 CMD ["apache2-foreground"]
