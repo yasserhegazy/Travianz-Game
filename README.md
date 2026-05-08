@@ -20,7 +20,7 @@ If you are upgrading from an older installation, do a fresh install and migrate 
 ## Quick Start (Docker)
 
 ```bash
-git clone https://github.com/Shadowss/TravianZ.git
+git clone https://github.com/YOUR_USER_NAME/TravianZ.git
 cd TravianZ
 cp .env.example .env
 docker compose up -d
