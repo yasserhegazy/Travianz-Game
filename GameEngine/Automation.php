@@ -1298,6 +1298,7 @@ class Automation {
                     //Data for when troops return.
                     //catapults look :D
                     $info_cat = $info_chief = $info_ram = $info_hero = ",";
+                    $hero_pic = isset($hero_pic) ? $hero_pic : "hero"; // ensure hero_pic always defined
                     
                     //check to see if can destroy village
                     if (count($varray) > 1 && !$database->villageHasArtefact($DefenderWref) && !$to['natar']) {
@@ -2254,7 +2255,7 @@ class Automation {
                             else $info_spy = "".$spy_pic.", There are no informations to show";                                                   
                         }
 
-                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.',0,0,0,0,0,'.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.$info_spy.','.$data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.',,'.$unitstraped_att;
+                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.',0,0,0,0,0,'.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : ',').','. $data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.',,'.$unitstraped_att;
                     }else{
                         if(isset($village_destroyed) && $village_destroyed == 1 && $can_destroy==1){
                             //check if village pop=0 and no info destroy
@@ -2263,7 +2264,7 @@ class Automation {
                                           <img class=\"unit u".$catp_pic."\" src=\"img/x.gif\" alt=\"Catapult\" title=\"Catapult\" /> The village has been destroyed.</td></tr></tbody>";
                             }
                         }
-                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.','.$steal[0].','.$steal[1].','.$steal[2].','.$steal[3].','.$battlepart['bounty'].','.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : '').',,'.$data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.','.$unitstraped_att;
+                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.','.$steal[0].','.$steal[1].','.$steal[2].','.$steal[3].','.$battlepart['bounty'].','.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : ',').','. $data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.','.$unitstraped_att;
                     }
                   
                     if($totalsend_att - ($totaldead_att + (isset($totaltraped_att) ? $totaltraped_att : 0)) <= 0){

@@ -620,16 +620,19 @@ class Battle {
 
             $_result = mysqli_query($database->dblink,"select heroid, health from " . TB_PREFIX . "hero where `dead`='0' and `heroid`=".(int) $atkhero['heroid']);
             $fdb = mysqli_fetch_array($_result);
-            $hero_id = (int) $fdb['heroid'];
-            $hero_health = $fdb['health'];
-            $damage_health = round(100 * $result[1]);
 
-            if ($hero_health <= $damage_health || $damage_health > 90){
-                //hero die
-                $result['casualties_attacker'][11] = 1;
-                mysqli_query($database->dblink,"update " . TB_PREFIX . "hero set `dead` = 1, `health` = 0 where `heroid`=".(int) $hero_id);
-            }else{
-                mysqli_query($database->dblink,"update " . TB_PREFIX . "hero set `health`=`health`-".(int) $damage_health." where `heroid`=".(int) $hero_id);
+            if ($fdb !== false && $fdb !== null && (int) $fdb['heroid'] > 0) {
+                $hero_id = (int) $fdb['heroid'];
+                $hero_health = (float) $fdb['health'];
+                $damage_health = round(100 * $result[1]);
+
+                if ($hero_health <= $damage_health || $damage_health > 90){
+                    //hero die
+                    $result['casualties_attacker'][11] = 1;
+                    mysqli_query($database->dblink,"update " . TB_PREFIX . "hero set `dead` = 1, `health` = 0 where `heroid`=".(int) $hero_id);
+                }else{
+                    mysqli_query($database->dblink,"update " . TB_PREFIX . "hero set `health`=`health`-".(int) $damage_health." where `heroid`=".(int) $hero_id);
+                }
             }
         }
         unset($_result, $fdb, $hero_id, $hero_health, $damage_health);
