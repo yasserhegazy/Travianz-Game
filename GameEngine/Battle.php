@@ -616,26 +616,41 @@ class Battle {
             $result['casualties_attacker'][$y] = round($result[1] * $units['Att_unit'][$i]);
         }
 
-        if (isset($units['Att_unit']['hero']) && $units['Att_unit']['hero'] >0){
+        // ─── Hero Combat Damage Resolution ────────────────────────────────────────
+        // Apply damage to the attacker's hero if one was sent into battle.
+        // Guards against null DB results when attacking empty targets (oases, abandoned villages).
+        if (isset($units['Att_unit']['hero']) && $units['Att_unit']['hero'] > 0) {
 
-            $_result = mysqli_query($database->dblink,"select heroid, health from " . TB_PREFIX . "hero where `dead`='0' and `heroid`=".(int) $atkhero['heroid']);
-            $fdb = mysqli_fetch_array($_result);
+            // Fetch the active hero record – must exist and not already be dead
+            $heroQuery  = "SELECT heroid, health FROM " . TB_PREFIX . "hero
+                           WHERE dead = 0 AND heroid = " . (int) $atkhero['heroid'];
+            $heroResult = mysqli_query($database->dblink, $heroQuery);
+            $heroRecord = $heroResult ? mysqli_fetch_array($heroResult) : null;
 
-            if ($fdb !== false && $fdb !== null && (int) $fdb['heroid'] > 0) {
-                $hero_id = (int) $fdb['heroid'];
-                $hero_health = (float) $fdb['health'];
-                $damage_health = round(100 * $result[1]);
+            // Only process damage when a valid hero record exists
+            if (!empty($heroRecord) && (int) $heroRecord['heroid'] > 0) {
 
-                if ($hero_health <= $damage_health || $damage_health > 90){
-                    //hero die
+                $hero_id      = (int)   $heroRecord['heroid'];
+                $hero_health  = (float) $heroRecord['health'];
+                $damage_dealt = (int)   round(100 * $result[1]);
+
+                if ($hero_health <= $damage_dealt || $damage_dealt > 90) {
+                    // Hero has fallen in battle
                     $result['casualties_attacker'][11] = 1;
-                    mysqli_query($database->dblink,"update " . TB_PREFIX . "hero set `dead` = 1, `health` = 0 where `heroid`=".(int) $hero_id);
-                }else{
-                    mysqli_query($database->dblink,"update " . TB_PREFIX . "hero set `health`=`health`-".(int) $damage_health." where `heroid`=".(int) $hero_id);
+                    mysqli_query($database->dblink, "UPDATE " . TB_PREFIX . "hero
+                        SET dead = 1, health = 0
+                        WHERE heroid = " . $hero_id);
+                } else {
+                    // Hero survived – reduce health by damage sustained
+                    mysqli_query($database->dblink, "UPDATE " . TB_PREFIX . "hero
+                        SET health = health - " . $damage_dealt . "
+                        WHERE heroid = " . $hero_id);
                 }
             }
+
+            unset($heroQuery, $heroResult, $heroRecord, $hero_id, $hero_health, $damage_dealt);
         }
-        unset($_result, $fdb, $hero_id, $hero_health, $damage_health);
+        // ─────────────────────────────────────────────────────────────────────────
 
 
         if (isset($units['Def_unit']['hero']) && $units['Def_unit']['hero'] >0){

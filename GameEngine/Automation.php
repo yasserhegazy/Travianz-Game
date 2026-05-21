@@ -1295,10 +1295,16 @@ class Automation {
 
                     $battlepart = $battle->calculateBattle($Attacker, $Defender, $def_wall, $att_tribe, $def_tribe, $residence, $attpop, $defpop, $type, $def_ab, $att_ab1, $att_ab2, $att_ab3, $att_ab4, $att_ab5, $att_ab6, $att_ab7, $att_ab8, $tblevel, $stonemason, $walllevel, 0, 0, 0, $AttackerID, $DefenderID, $AttackerWref, $DefenderWref, $conqureby, $enforcementarray);
 
-                    //Data for when troops return.
-                    //catapults look :D
-                    $info_cat = $info_chief = $info_ram = $info_hero = ",";
-                    $hero_pic = isset($hero_pic) ? $hero_pic : "hero"; // ensure hero_pic always defined
+                    // ─── Battle Info Variables ──────────────────────────────────────────────────
+                    // Initialise all info fields used when generating the report CSV.
+                    // hero_pic must be set here as a fallback to guarantee the hero
+                    // information row is always rendered in the report template.
+                    $info_cat   = ",";
+                    $info_chief = ",";
+                    $info_ram   = ",";
+                    $info_hero  = ",";
+                    $hero_pic   = $hero_pic ?? 'hero';
+                    // ────────────────────────────────────────────────────────────────────────────
                     
                     //check to see if can destroy village
                     if (count($varray) > 1 && !$database->villageHasArtefact($DefenderWref) && !$to['natar']) {
@@ -2255,7 +2261,27 @@ class Automation {
                             else $info_spy = "".$spy_pic.", There are no informations to show";                                                   
                         }
 
-                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.',0,0,0,0,0,'.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : ',').','. $data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.',,'.$unitstraped_att;
+                        // Build report CSV — spy/raid path (resources not looted)
+                        $spy_info = isset($info_spy) ? $info_spy : ',';
+                        $data2 = implode(',', [
+                            $from['owner'], $from['wref'], $owntribe,
+                            $unitssend_att, $unitsdead_att,
+                            0, 0, 0, 0, 0,                          // no loot on spy raids
+                            $to['owner'], $to['wref'], addslashes($to['name']),
+                            '', '', '',                              // reserved fields
+                            $targettribe,
+                            $unitssend_def[0], $unitsdead_def[0], $rom,
+                            $unitssend_def[1], $unitsdead_def[1], $ger,
+                            $unitssend_def[2], $unitsdead_def[2], $gal,
+                            $unitssend_def[3], $unitsdead_def[3], $nat,
+                            $unitssend_def[4], $unitsdead_def[4], $natar,
+                            $unitssend_def[5], $unitsdead_def[5],
+                            $DefenderHeroesTot, $DefenderHeroesDead,
+                            $info_ram, $info_cat, $info_chief, $spy_info,
+                            $data['t11'], $dead11,
+                            $herosend_def, $deadhero,
+                            '', $unitstraped_att,
+                        ]);
                     }else{
                         if(isset($village_destroyed) && $village_destroyed == 1 && $can_destroy==1){
                             //check if village pop=0 and no info destroy
@@ -2264,7 +2290,27 @@ class Automation {
                                           <img class=\"unit u".$catp_pic."\" src=\"img/x.gif\" alt=\"Catapult\" title=\"Catapult\" /> The village has been destroyed.</td></tr></tbody>";
                             }
                         }
-                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.','.$steal[0].','.$steal[1].','.$steal[2].','.$steal[3].','.$battlepart['bounty'].','.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : ',').','. $data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.','.$unitstraped_att;
+                        // Build report CSV — normal attack path (with looted resources)
+                        $spy_info = isset($info_spy) ? $info_spy : ',';
+                        $data2 = implode(',', [
+                            $from['owner'], $from['wref'], $owntribe,
+                            $unitssend_att, $unitsdead_att,
+                            $steal[0], $steal[1], $steal[2], $steal[3], $battlepart['bounty'],
+                            $to['owner'], $to['wref'], addslashes($to['name']),
+                            '', '', '',                              // reserved fields
+                            $targettribe,
+                            $unitssend_def[0], $unitsdead_def[0], $rom,
+                            $unitssend_def[1], $unitsdead_def[1], $ger,
+                            $unitssend_def[2], $unitsdead_def[2], $gal,
+                            $unitssend_def[3], $unitsdead_def[3], $nat,
+                            $unitssend_def[4], $unitsdead_def[4], $natar,
+                            $unitssend_def[5], $unitsdead_def[5],
+                            $DefenderHeroesTot, $DefenderHeroesDead,
+                            $info_ram, $info_cat, $info_chief, $spy_info,
+                            $data['t11'], $dead11,
+                            $herosend_def, $deadhero,
+                            $unitstraped_att,
+                        ]);
                     }
                   
                     if($totalsend_att - ($totaldead_att + (isset($totaltraped_att) ? $totaltraped_att : 0)) <= 0){
