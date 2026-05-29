@@ -123,7 +123,7 @@ if(isset($_GET['confirm']) && is_numeric($_GET['confirm'])){
 	#content .buttons { text-align: center; }
 	</style>
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
 </head>
 
 

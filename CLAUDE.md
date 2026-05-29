@@ -68,7 +68,7 @@ Players build villages, train troops, attack others, join alliances. Arabic (RTL
 | `_base.css` | global | Hide/show helpers, global defaults | 152 | done |
 | `_tablet.css` | ≤980px | Remove fixed widths, flex layout start | 183 | done |
 | `_phone_public.css` | ≤768px | Public pages: index, tutorials, hamburger sidebar | 516 | done |
-| `_phone_outgame.css` | ≤768px | Login, signup, activation forms | 510 | done |
+| `_phone_outgame.css` | ≤768px + 769–980px | Login, signup, activation forms (phone + tablet blocks) | 960 | done |
 | `_phone_ingame.css` | ≤768px | In-game shell (imports `_phone_ingame/` submodules) | 10 | done |
 | `_phone_ingame/global.css` | ≤768px | In-game common rules | — | done |
 | `_phone_ingame/header.css` | ≤768px | Mobile header | — | done |
