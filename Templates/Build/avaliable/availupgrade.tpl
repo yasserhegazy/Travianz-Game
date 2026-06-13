@@ -2,8 +2,9 @@
 $bid = $_GET['bid'];
 unset($_GET['bid']);
 $bindicator = $building->canBuild($id,$bid);
-$loopsame = ($building->isCurrent($id) || $building->isLoop($id))?1:0;
-$doublebuild = ($building->isCurrent($id) && $building->isLoop($id))?1:0;
+$loopsame = count($database->getBuildingByField($village->wid, $id));
+$doublebuild = 0;
+$master = count($database->getMasterJobsByField($village->wid, $id));
 $uprequire = $building->resourceRequired($id, $bid);
 ?>
 <td class="res">

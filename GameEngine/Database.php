@@ -834,22 +834,64 @@ public function getBestOasisCropBonus($x, $y) {
 	}
 
 	// no need to cache this method
-	public function hasBeginnerProtection($vid) {
-	list($vid) = $this->escape_input($vid);
-    	$q = "SELECT u.protect FROM ".TB_PREFIX."users u,".TB_PREFIX."vdata v WHERE u.id=v.owner AND v.wref=".(int) $vid." LIMIT 1";
-	$result = mysqli_query($this->dblink,$q);
-	$dbarray = mysqli_fetch_array($result);
-	if(!empty($dbarray)) {
-		if(time()<$dbarray[0]) {
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
+public function hasBeginnerProtection($vid) {
+    list($vid) = $this->escape_input($vid);
+
+    $q = "SELECT u.protect, u.gold_protect
+          FROM " . TB_PREFIX . "users u
+          JOIN " . TB_PREFIX . "vdata v ON u.id = v.owner
+          WHERE v.wref = " . (int)$vid . "
+          LIMIT 1";
+
+    $result = mysqli_query($this->dblink, $q);
+    $row = mysqli_fetch_array($result);
+
+    if (!empty($row)) {
+        return (time() < (int)$row['protect'] || time() < (int)$row['gold_protect']);
+    }
+
+    return false;
+}
+public function hasUserBeginnerProtection($uid) {
+    list($uid) = $this->escape_input($uid);
+
+    $q = "SELECT protect, gold_protect
+          FROM " . TB_PREFIX . "users
+          WHERE id = " . (int)$uid . "
+          LIMIT 1";
+
+    $result = mysqli_query($this->dblink, $q);
+    $row = mysqli_fetch_array($result);
+
+    if (!empty($row)) {
+        return (time() < (int)$row['protect'] || time() < (int)$row['gold_protect']);
+    }
+
+    return false;
 }
 
+public function getProtectedPlayerLink($uid, $username) {
+    $style = "";
+
+    if ($this->hasUserBeginnerProtection($uid)) {
+        $style = " style=\"color:#2e7d32 !important;\"";
+    }
+
+    return "<a href=\"spieler.php?uid=".(int)$uid."\"".$style.">".$username."</a>";
+}
+public function getVillageOwner($vid) {
+    list($vid) = $this->escape_input($vid);
+
+    $q = "SELECT owner FROM " . TB_PREFIX . "vdata WHERE wref = " . (int)$vid . " LIMIT 1";
+    $result = mysqli_query($this->dblink, $q);
+    $row = mysqli_fetch_array($result);
+
+    if (!empty($row)) {
+        return (int)$row['owner'];
+    }
+
+    return 0;
+}
 	function updateUserField($ref, $field, $value, $switch) {
         list($ref) = $this->escape_input($ref);
 
@@ -1338,6 +1380,9 @@ public function getBestOasisCropBonus($x, $y) {
         $villages = [];
         $time = time();
         
+        // Track cells already picked in this run so repeated passes never select the same
+        // wdata id twice (occupied is only flagged later, in setFieldTaken).
+        $selectedIds = [];
         while ($numberOfVillages > 0) {
             switch($mode){
                 case 0:
@@ -1348,29 +1393,33 @@ public function getBestOasisCropBonus($x, $y) {
                     break;
                     
                 case 1:
-                default:
                     $radiusMin = 1;
-                    $radiusMax = pow(WORLD_MAX, 2);
-                    break;
-                    
-                case 2: //Small artifacts & WW building plans
-                    $radiusMin = round(pow(WORLD_MAX * 0.50, 2));
-                    $radiusMax = round(pow(WORLD_MAX * 0.75, 2));
-                    break;
-                
-                case 3: //Large artifacts
-                    $radiusMin = round(pow(WORLD_MAX * 0.35, 2));
-                    $radiusMax = round(pow(WORLD_MAX * 0.55, 2));
-                    break;
-                
-                case 4: //Unique artifacts
-                    $radiusMin = round(pow(WORLD_MAX * 0.05, 2));
-                    $radiusMax = round(pow(WORLD_MAX * 0.25, 2));
+                    $radiusMax = pow(30, 2);
                     break;
 
-                case 5: //WW villages
-                    $radiusMin = round(pow(WORLD_MAX * 0.8, 2));
-                    $radiusMax = round(pow(WORLD_MAX, 2));
+                case 2: // Small artifacts & WW building plans
+                    $radiusMin = round(pow(WORLD_MAX * 0.10, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.30, 2), 2);
+                    break;
+
+                case 3: // Large artifacts
+                    $radiusMin = round(pow(WORLD_MAX * 0.15, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.35, 2), 2);
+                    break;
+
+                case 4: // Unique artifacts
+                    $radiusMin = round(pow(WORLD_MAX * 0.05, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.20, 2), 2);
+                    break;
+
+                case 5: // WW villages
+                    $radiusMin = round(pow(WORLD_MAX * 0.25, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.45, 2), 2);
+                    break;
+
+                default:
+                    $radiusMin = 1;
+                    $radiusMax = pow(30, 2);
                     break;
             }
 
@@ -1382,20 +1431,30 @@ public function getBestOasisCropBonus($x, $y) {
             }
 
             //Choose villages beetween two circumferences, by using their formula (x^2 + y^2 = r^2)
-            $q = "SELECT id FROM ".TB_PREFIX."wdata WHERE fieldtype = 3 AND ($newSector) AND (POWER(x, 2) + POWER(y, 2) >= $radiusMin AND POWER(x, 2) + POWER(y, 2) <= $radiusMax) AND occupied = 0 ORDER BY RAND() LIMIT $numberOfVillages";
+            $excludeIds = empty($selectedIds) ? '' : ' AND id NOT IN ('.implode(',', $selectedIds).')';
+            $q = "SELECT id FROM ".TB_PREFIX."wdata WHERE occupied = 0 AND fieldtype = 3 AND ($newSector) AND (POWER(x, 2) + POWER(y, 2) >= $radiusMin AND POWER(x, 2) + POWER(y, 2) <= $radiusMax)".$excludeIds." ORDER BY RAND() LIMIT $numberOfVillages";
             $result = mysqli_query($this->dblink, $q);
 
-            //Prevent an infinite loop
             $resultedRows = mysqli_num_rows($result);
-            if($resultedRows == 0 && $count >= WORLD_MAX * 2) break;
-            
+
+            // No new candidate cells in this radius/sector. Only mode 0 widens its radius as
+            // $count grows, so it's worth retrying until the backstop. Every other mode uses a
+            // FIXED radius, so an identical query would just spin (the original cause of the
+            // multi-minute hang + execution-time fatal) -> stop immediately.
+            if($resultedRows == 0){
+                if($mode == 0 && $count < WORLD_MAX * 2){ $count++; continue; }
+                break;
+            }
+
             //Fill the villages array
-            $villages = array_merge($villages, $this->mysqli_fetch_all($result));
-            
+            $rows = $this->mysqli_fetch_all($result);
+            foreach($rows as $row) $selectedIds[] = (int) $row['id'];
+            $villages = array_merge($villages, $rows);
+
             $num_rows += $resultedRows;
             $numberOfVillages -= $resultedRows;
             $count++;
-            
+
         }
 
         foreach($villages as $village) $wids[] = $village['id'];
@@ -1646,8 +1705,9 @@ public function getBestOasisCropBonus($x, $y) {
             }
         }
 
+        $owner = (int) $this->getVillageField($vref, 'owner', $use_cache);
         // Allow up to 6 oases per village — requires Hero Mansion level 10+
-        $maxOases = 6;
+        $maxOases = $this->getArtifactsValueInfluence($owner, $vref, 12, 6, false);
         if ( $HeroMansionLevel >= 10 && $this->VillageOasisCount( $vref ) < $maxOases ) {
             $OasisInfo = $this->getOasisInfo( $wref );
             //fix by ronix
@@ -1676,9 +1736,63 @@ public function getBestOasisCropBonus($x, $y) {
 		$vinfo = $this->getVillage($vref);
 		$uid = (int) $vinfo['owner'];
 		$q = "UPDATE `".TB_PREFIX."odata` SET conqured=".(int) $vref. ",loyalty=100,lastupdated=".time().",owner=$uid,name='".((defined('LANG') && LANG === 'ar') ? 'واحة محتلة' : 'Occupied Oasis')."' WHERE wref=".$wref;
-		return mysqli_query($this->dblink,$q);
-	}
+		$result = mysqli_query($this->dblink, $q);
 
+if ($result) {
+    $this->trimExtraOases($vref);
+}
+
+return $result;
+	}
+public function trimExtraOases($vref) {
+    $vref = (int) $vref;
+
+    $village = $this->getVillage($vref);
+    if (!$village || empty($village['owner'])) {
+        return;
+    }
+
+    $owner = (int) $village['owner'];
+
+    // الحد الأساسي 6 واحات + تأثير تحفة الواحات نوع 12
+    $maxOases = $this->getArtifactsValueInfluence($owner, $vref, 12, 6, false);
+
+    $currentOases = $this->VillageOasisCount($vref);
+
+    if ($currentOases <= $maxOases) {
+        return;
+    }
+
+    $removeCount = $currentOases - $maxOases;
+
+    // حذف آخر الواحات المحتلة، وليس أولها
+    $q = "
+        SELECT wref
+        FROM " . TB_PREFIX . "odata
+        WHERE conquered = $vref
+        ORDER BY lastupdated DESC
+        LIMIT $removeCount
+    ";
+
+    $oases = $this->query_return($q);
+
+    if (empty($oases)) {
+        return;
+    }
+
+    foreach ($oases as $oasis) {
+        $wref = (int) $oasis['wref'];
+
+        $this->query("
+            UPDATE " . TB_PREFIX . "odata
+            SET conquered = 0,
+                owner = 0,
+                loyalty = 100,
+                lastupdated = " . time() . "
+            WHERE wref = $wref
+        ");
+    }
+}
     public function modifyOasisLoyalty($wref) {
         list($wref) = $this->escape_input((int) $wref);
 
@@ -3594,27 +3708,61 @@ public function getBestOasisCropBonus($x, $y) {
    	function setMaxStoreForVillage($vid, $maxLevel) {
 	    $vid = (int) $vid;
 	    $maxLevel = (int) $maxLevel;
+$owner = $this->getVillageField($vid, 'owner');
 
+$multiplier = 1;
+
+// الصغيرة (تأثير قرية)
+if($this->getOwnArtefactInfoByType($vid, 6, 1)) {
+    $multiplier = 5;
+}
+
+// الكبيرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 2, 1)) {
+    $multiplier = 3;
+}
+
+// النادرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 3, 1)) {
+    $multiplier = 10;
+}
+
+$maxLevel *= $multiplier;
         $this->query("
-                        UPDATE
-                            ".TB_PREFIX."vdata
-                        SET
-                            `maxstore` = IF( `maxstore` - $maxLevel < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", `maxstore` - $maxLevel )
-                        WHERE
-                            wref=$vid");
+    UPDATE ".TB_PREFIX."vdata
+    SET `maxstore` = IF((`maxstore` - $maxLevel) < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", (`maxstore` - $maxLevel))
+    WHERE `wref` = $vid
+");
     }
 
     function setMaxCropForVillage($vid, $maxLevel) {
         $vid = (int) $vid;
         $maxLevel = (int) $maxLevel;
+$owner = $this->getVillageField($vid, 'owner');
 
+$multiplier = 1;
+
+// الصغيرة (تأثير قرية)
+if($this->getOwnArtefactInfoByType($vid, 6, 1)) {
+    $multiplier = 5;
+}
+
+// الكبيرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 2, 1)) {
+    $multiplier = 3;
+}
+
+// النادرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 3, 1)) {
+    $multiplier = 10;
+}
+
+$maxLevel *= $multiplier;
         $this->query("
-                        UPDATE
-                            ".TB_PREFIX."vdata
-                        SET
-                            `maxcrop` = IF( `maxcrop` - $maxLevel < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", `maxcrop` - $maxLevel )
-                        WHERE
-                            wref=$vid");
+    UPDATE ".TB_PREFIX."vdata
+    SET `maxcrop` = IF((`maxcrop` - $maxLevel) < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", (`maxcrop` - $maxLevel))
+    WHERE `wref` = $vid
+");
     }
 
 	function modifyOasisResource($vid, $wood, $clay, $iron, $crop, $mode) {
@@ -4017,15 +4165,25 @@ public function getBestOasisCropBonus($x, $y) {
     }
 
     function modifyPop($vid, $pop, $mode) {
-        list($vid, $pop, $mode) = $this->escape_input((int) $vid, (int) $pop, $mode);
+    list($vid, $pop, $mode) = $this->escape_input((int) $vid, (int) $pop, $mode);
 
-        if(!$mode) {
-            $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop + $pop where wref = $vid";
-        } else {
-            $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop - $pop where wref = $vid";
-        }
-        return mysqli_query($this->dblink,$q);
+    if(!$mode) {
+        $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop + $pop where wref = $vid";
+    } else {
+        $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop - $pop where wref = $vid";
     }
+
+    $result = mysqli_query($this->dblink, $q);
+
+    if($result && !$mode && $pop > 0) {
+        $owner = $this->getVillageField($vid, "owner");
+        if($owner > 0) {
+            $this->addclimberrankpop($owner, $pop);
+        }
+    }
+
+    return $result;
+}
 
     function addCP($ref, $cp) {
         list($ref, $cp) = $this->escape_input((int) $ref, (int) $cp);
@@ -5751,7 +5909,62 @@ References: User ID/Message ID, Mode
 		}
 
 		$result = $this->mysqli_fetch_all(mysqli_query($this->dblink,$q));
+// تحفة الهجوم المباغت
+if ($type == 3 && !$mode && is_array($result) && count($result)) {
 
+    foreach ($result as $k => $row) {
+
+        // فقط الهجمات
+        if (!isset($row['attack_type'])) {
+            continue;
+        }
+
+        $fromVillage = (int)$row['from'];
+        $toVillage   = (int)$row['to'];
+
+        // مالك القرية المهاجمة
+        $attackerVillage = $this->getVillage($fromVillage);
+        $attackerOwner   = (int)$attackerVillage['owner'];
+
+        // مالك القرية المدافعة
+        $defenderVillage = $this->getVillage($toVillage);
+        $defenderOwner   = (int)$defenderVillage['owner'];
+
+        // هل المدافع عنده تحفة الجواسيس؟
+        $defSpyArtifact = $this->getArtifactsValueInfluence($defenderOwner, $toVillage, 3, 0, false);
+
+        // إذا عنده تحفة الجواسيس -> اكشف الهجمة فورًا
+        if ($defSpyArtifact > 0) {
+            continue;
+        }
+
+        // تحفة الهجوم المباغت
+        $stealthValue = $this->getArtifactsValueInfluence($attackerOwner, $fromVillage, 14, 0, false);
+
+        // لا توجد تحفة
+        if ($stealthValue <= 0) {
+            continue;
+        }
+
+        $start = (int)$row['starttime'];
+        $end   = (int)$row['endtime'];
+
+        if ($end <= $start) {
+            continue;
+        }
+
+        // نسبة الطريق المقطوعة
+        $passed = (time() - $start) / ($end - $start);
+
+        // لم تصل للنسبة المطلوبة -> اخفِ الهجمة
+        if ($passed < $stealthValue) {
+            unset($result[$k]);
+        }
+    }
+
+    // إعادة ترتيب المصفوفة
+    $result = array_values($result);
+}
         // return a single value
         if (!$array_passed) {
             self::$marketMovementCache[$type.$village[0].$mode] = $result;
@@ -5850,6 +6063,17 @@ References: User ID/Message ID, Mode
 	}
 
 	function addAttack($vid, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $type, $ctar1, $ctar2, $spy,$b1=0,$b2=0,$b3=0,$b4=0,$b5=0,$b6=0,$b7=0,$b8=0) {
+		global $database;
+
+if(!is_array($vid)) {
+
+    $kid = $database->getVillageField($vid, 'kid');
+
+    // منع الهجوم على قرية التتار المحمية
+    if($kid == 5) {
+        return false;
+    }
+}
 	    if (!is_array($vid)) {
 	        $vid = [$vid];
 	        $t1 = [$t1];
@@ -6396,7 +6620,7 @@ References: User ID/Message ID, Mode
 		
 			$now = time();
             $uid = $this->getVillageField($vid, "owner");
-            $each = $this->getArtifactsValueInfluence($uid, $vid, 5, $each);
+            //$each = $this->getArtifactsValueInfluence($uid, $vid, 5, $each);
             
             $time2 = $now + $each;
             $time = $now + ($each * $amt);
@@ -6438,8 +6662,12 @@ References: User ID/Message ID, Mode
             //Fixed part of negative troops (double troops) - by InCube
             $units .= $unit.' = '.$unit.' '.(($array_mode[$i] == 1)? '+':'-').'  '.($array_amt[$i] ? $array_amt[$i] : 0).(($number > $i+1) ? ', ' : '');
 		}
-		$q = "UPDATE ".TB_PREFIX."units set $units WHERE vref = $vref";
-		return mysqli_query($this->dblink, $q);
+		if(empty(trim($units))) {
+    return false;
+}
+
+$q = "UPDATE ".TB_PREFIX."units set $units WHERE vref = $vref";
+return mysqli_query($this->dblink, $q);
 	}
 
 	function getEnforce($vid, $from, $use_cache = true) {
@@ -7454,7 +7682,40 @@ References: User ID/Message ID, Mode
 	    list($uid, $vid, $kind, $multiplicand, $round) = $this->escape_input((int) $uid,(int) $vid, $kind, $multiplicand, $round);
 
 	    $artefacts = $foolArefacts = [];
-	    $multipliers = [1 => [4, 5, 3], 2 => [1/2, 1/3, 2/3], 3 => [5, 10, 3], 4 => [1/2, 1/2, 3/4], 5 => [1/2, 1/2, 3/4], 7 => [3, 6, 2]];
+		$jokers = array();
+
+$smallJoker = $this->getOwnUniqueArtefactInfo2($uid, 8, 1, 1);
+$largeJoker = $this->getOwnUniqueArtefactInfo2($uid, 8, 2, 0);
+$uniqueJoker = $this->getOwnUniqueArtefactInfo2($uid, 8, 3, 0);
+
+if (!empty($smallJoker)) {
+    $jokers = $smallJoker;
+}
+elseif (!empty($largeJoker)) {
+    $jokers = $largeJoker;
+}
+elseif (!empty($uniqueJoker)) {
+    $jokers = $uniqueJoker;
+}
+
+if (count($jokers) > 0)
+{
+    require_once(__DIR__ . '/sys_x8.php');
+
+    $jokerEffect = sys_x8::getOrCreateEffect(
+        $jokers['id'],
+        $uid,
+        $jokers['vref'],
+        $jokers['size']
+    );
+
+   $multiplicand = sys_x8::applyJokerEffect(
+    $jokerEffect,
+    $kind,
+    $multiplicand
+);
+}
+	    $multipliers = [1 => [6, 10, 4], 2 => [1/2, 1/3, 2/3], 3 => [7, 12, 5], 4 => [1/4, 1/10, 1/2], 5 => [1/2, 3/4, 1/2], 6 => [5, 10, 3], 7 => [6, 25, 3], 10 => [1.75, 2, 1.5], 11 => [1.75, 2, 1.5], 12 => [9, 10, 8], 13 => [3, 4, 2.5], 14 => [0.75, 0.90, 0.50]];
 
 	    $artefacts[] = count($this->getOwnUniqueArtefactInfo2($vid, $kind, 1, 1)); //Village effect
 	    $artefacts[] = count($this->getOwnUniqueArtefactInfo2($uid, $kind, 3, 0)); //Unique effect
@@ -7566,14 +7827,14 @@ References: User ID/Message ID, Mode
               FROM
                     ".TB_PREFIX."artefacts
               WHERE
-                    owner = ".$uid." AND type = 11 AND active = 1 AND del = 0";
+                    owner = ".$uid." AND type = 15 AND active = 1 AND del = 0";
 	    }else{
 	        $q = "SELECT
 			        Count(*) as Total
               FROM
                     ".TB_PREFIX."artefacts AS artefacts
 			  INNER JOIN ".TB_PREFIX."users AS users
-					ON users.id != ".$uid." AND users.alliance = ".$alliance." AND artefacts.owner = users.id AND artefacts.type = 11
+					ON users.id != ".$uid." AND users.alliance = ".$alliance." AND artefacts.owner = users.id AND artefacts.type = 15
 		      WHERE
 					users.id > 4 AND artefacts.active = 1 AND artefacts.del = 0";
 	    }
@@ -7767,7 +8028,7 @@ References: User ID/Message ID, Mode
 	function areArtifactsSpawned($mode = false){
 		list($mode) = $this->escape_input($mode);
 		
-		$q = "SELECT 1 FROM ".TB_PREFIX."artefacts".($mode ? " WHERE type = 11" : "");
+		$q = "SELECT 1 FROM ".TB_PREFIX."artefacts".($mode ? " WHERE type = 15" : "");
 		$result = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
 		return $result;
 	}

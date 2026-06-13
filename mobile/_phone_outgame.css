@@ -16,18 +16,7 @@
   body.v35 div#mid {
     min-width: 0 !important;
     width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Zero out the 8px horizontal padding that _phone_ingame/global.css adds to all div#mid.
-     On outgame pages there is no in-game sidebar, so the extra padding serves no purpose
-     and shrinks the nav bar container by 16px, causing pills to overflow the viewport. */
-  body.v35:has(div.outgame) div#mid,
-  body.v35:has(div#content.login) div#mid,
-  body.v35:has(div#content.signup) div#mid,
-  body.v35:has(div#content.activate) div#mid,
-  body.v35:has(div#content.logout) div#mid {
-    padding: 0 !important;
+    box-sizing: border-box;
   }
 
   body.v35 div#mid {
@@ -54,8 +43,7 @@
   /* Side navigation — horizontal pill links */
   body.v35:has(div.outgame) div#side_navi,
   body.v35:has(div#content.login) div#side_navi,
-  body.v35:has(div#content.signup) div#side_navi,
-  body.v35:has(div#content.activate) div#side_navi {
+  body.v35:has(div#content.signup) div#side_navi {
     position: static !important;
     float: none !important;
     clear: both !important;
@@ -77,58 +65,53 @@
 
   body.v35:has(div.outgame) div#side_navi a#logo,
   body.v35:has(div#content.login) div#side_navi a#logo,
-  body.v35:has(div#content.signup) div#side_navi a#logo,
-  body.v35:has(div#content.activate) div#side_navi a#logo {
+  body.v35:has(div#content.signup) div#side_navi a#logo {
     display: none !important;
   }
 
   body.v35:has(div.outgame) div#side_navi a#logo img,
   body.v35:has(div#content.login) div#side_navi a#logo img,
-  body.v35:has(div#content.signup) div#side_navi a#logo img,
-  body.v35:has(div#content.activate) div#side_navi a#logo img {
+  body.v35:has(div#content.signup) div#side_navi a#logo img {
     display: none !important;
   }
 
   body.v35:has(div.outgame) div#side_navi p,
   body.v35:has(div#content.login) div#side_navi p,
-  body.v35:has(div#content.signup) div#side_navi p,
-  body.v35:has(div#content.activate) div#side_navi p {
+  body.v35:has(div#content.signup) div#side_navi p {
     margin: 0 !important;
     line-height: normal !important;
     display: flex !important;
-    flex-direction: row !important;
     flex-wrap: nowrap !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    gap: 6px !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
 
   body.v35:has(div.outgame) div#side_navi p a,
   body.v35:has(div#content.login) div#side_navi p a,
-  body.v35:has(div#content.signup) div#side_navi p a,
-  body.v35:has(div#content.activate) div#side_navi p a {
-    /* flex: 1 1 0 — each link claims equal share of available width; text nodes stay 0 */
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
+  body.v35:has(div#content.signup) div#side_navi p a {
     display: flex !important;
+    flex: 0 0 auto !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 8px 2px !important;
-    font-size: 11px !important;
+    padding: 8px 16px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     background: #fff !important;
     border: 1px solid #ddd !important;
     border-radius: 20px !important;
     color: #333 !important;
     text-decoration: none !important;
-    text-align: center !important;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
-    min-height: 36px !important;
-    box-sizing: border-box !important;
-    line-height: 1.2 !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    line-height: normal !important;
     background-image: none !important;
     background-position: initial !important;
-    word-break: break-word !important;
+    transform: translateZ(0) !important; /* Force GPU calculation to prevent RTL flex jitter */
   }
 
   /* ═══ NUCLEAR: Kill ALL desktop hover effects on outgame mobile ═══ */
@@ -393,12 +376,10 @@
     width: 18px !important;
     height: 18px !important;
     margin-right: 8px !important;
-    position: static !important;
-    float: none !important;
   }
 
   /* Activate page */
-  body.v35 div.activate #activation {
+  body.v35 div.activate table {
     width: 100% !important;
     max-width: 360px !important;
     margin: 15px auto !important;
@@ -413,52 +394,24 @@
     white-space: normal !important;
   }
 
-  body.v35 div.activate #activation tbody {
+  body.v35 div.activate table tbody {
     display: block !important;
     width: 100% !important;
   }
 
-  body.v35 div.activate #activation tr {
+  body.v35 div.activate table tr {
     display: flex !important;
     flex-direction: column !important;
     margin-bottom: 10px !important;
   }
 
-  body.v35 div.activate #activation th,
-  body.v35 div.activate #activation td {
+  body.v35 div.activate table th,
+  body.v35 div.activate table td {
     display: block !important;
     width: 100% !important;
     text-align: start !important;
     padding: 2px 0 !important;
     font-size: 13px !important;
-  }
-
-  /* Activate button - match login full-width */
-  body.v35 div.activate #activation p {
-    text-align: center !important;
-    padding: 0 !important;
-    margin: 10px auto !important;
-  }
-
-  body.v35 div.activate #activation button#btn_send {
-    width: 100% !important;
-    padding: 12px 20px !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    background: linear-gradient(135deg, #71D000, #5eac00) !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    cursor: pointer !important;
-    box-shadow: 0 3px 8px rgba(113,208,0,0.3) !important;
-    transition: all 0.2s;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-
-  body.v35 div.activate #activation button#btn_send:active {
-    transform: scale(0.97);
-    box-shadow: 0 1px 4px rgba(113,208,0,0.2) !important;
   }
 
   /* Side info (news boxes) — stack below content */
@@ -554,441 +507,4 @@
   body.v35 {
     overflow-x: hidden !important;
   }
-
-  /* ──────────────────────────────────────────────────────────────────────
-     SIGNUP — Tribe / Position selection table (sign_select)
-     Generic table→block stacking breaks this 3-column selection grid.
-     Reset to real table layout so tribes and positions stay side by side.
-     ────────────────────────────────────────────────────────────────────── */
-  body.v35 div.signup table#sign_select {
-    display: table !important;
-    table-layout: fixed !important;
-    width: 100% !important;
-    border-collapse: collapse !important;
-    padding: 8px !important;
-    box-sizing: border-box !important;
-  }
-  body.v35 div.signup table#sign_select tbody {
-    display: table-row-group !important;
-  }
-  body.v35 div.signup table#sign_select tr {
-    display: table-row !important;
-    flex-direction: unset !important;
-    margin-bottom: 0 !important;
-  }
-  body.v35 div.signup table#sign_select th,
-  body.v35 div.signup table#sign_select td {
-    display: table-cell !important;
-    width: auto !important;
-    padding: 6px 4px !important;
-    font-size: 12px !important;
-    text-align: center !important;
-    vertical-align: middle !important;
-  }
-  /* Tribe/position header sprite images — scale to fit their table cell */
-  body.v35 div.signup table#sign_select img.img_u06,
-  body.v35 div.signup table#sign_select img.img_u07 {
-    width: 100% !important;
-    max-width: 100% !important;
-    height: auto !important;
-    display: block !important;
-  }
-  /* Radio labels inside sign_select — compact but tappable */
-  body.v35 div.signup table#sign_select label {
-    font-size: 12px !important;
-    padding: 3px 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 4px !important;
-    cursor: pointer !important;
-  }
-  body.v35 div.signup table#sign_select input.radio {
-    flex-shrink: 0 !important;
-  }
-
-  /* ──────────────────────────────────────────────────────────────────────
-     ACTIVATE — Layout fixes
-     ────────────────────────────────────────────────────────────────────── */
-
-  /* #activation floats left at 40% on desktop — make full-width on mobile */
-  body.v35 div.activate #activation,
-  body.v35 div.signup #activation {
-    float: none !important;
-    width: 100% !important;
-    max-width: 360px !important;
-    margin: 10px auto !important;
-    box-sizing: border-box !important;
-  }
-
-  /* input[type=image] used as submit button (img/x.gif + CSS background) —
-     give it a proper tap target; the visual comes from the background image */
-  body.v35 input[type="image"].dynamic_img {
-    display: block !important;
-    width: 120px !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    margin: 12px auto !important;
-    cursor: pointer !important;
-    background-position: center center !important;
-    background-size: auto 24px !important;
-  }
-
-  /* #no_mail section — un-float, clean up spacing */
-  body.v35 div#no_mail {
-    float: none !important;
-    clear: both !important;
-    width: 100% !important;
-    max-width: 360px !important;
-    margin: 12px auto 0 !important;
-    padding: 12px !important;
-    background: #f4f4f4 !important;
-    border-radius: 8px !important;
-    box-sizing: border-box !important;
-    font-size: 13px !important;
-    line-height: 1.6 !important;
-  }
-  body.v35 div#no_mail p {
-    text-align: left !important;
-    font-size: 13px !important;
-    padding: 0 !important;
-    margin-bottom: 6px !important;
-  }
-  body.v35 div#no_mail ul {
-    padding-left: 20px !important;
-    margin: 6px 0 !important;
-  }
-
-  /* Activation countdown timer */
-  body.v35 div.activation_time,
-  body.v35 #cntdwn {
-    display: block !important;
-    text-align: center !important;
-    font-size: 28px !important;
-    font-weight: bold !important;
-    color: #71D000 !important;
-    padding: 10px !important;
-    letter-spacing: 2px !important;
-  }
-
-  /* .f9 / .f10 — 9pt/10pt are illegibly tiny on mobile */
-  body.v35 div.activate .f9,
-  body.v35 div.activate .f10,
-  body.v35 div.activate p.f9,
-  body.v35 div.activate p.f10 {
-    font-size: 14px !important;
-    line-height: 1.6 !important;
-  }
-
-  /* h6 heading in delete/cantfind templates */
-  body.v35 div.activate h6 {
-    font-size: 16px !important;
-    font-weight: bold !important;
-    margin: 8px 0 10px !important;
-  }
-
-  /* ──────────────────────────────────────────────────────────────────────
-     NEWS BOXES (side_info outgame) — actual <img> tags need scaling
-     ────────────────────────────────────────────────────────────────────── */
-  body.v35 div#side_info.outgame div.news h5 img {
-    max-width: 100% !important;
-    height: auto !important;
-    display: block !important;
-    margin: 0 auto !important;
-  }
-  body.v35 div#side_info.outgame div.news h5 {
-    text-align: center !important;
-    margin: 0 0 8px !important;
-  }
-  body.v35 div#side_info.outgame div.news table {
-    width: 100% !important;
-    font-size: 13px !important;
-  }
-  body.v35 div#side_info.outgame div.news table td {
-    padding: 4px 2px !important;
-    word-break: break-word !important;
-  }
 }
-
-/* ==========================================================================
-   TABLET  ( 769px – 980px )  — Outgame side_navi repositioning + pill nav
-   ========================================================================== */
-@media screen and (min-width: 769px) and (max-width: 980px) {
-  /* Reposition the outgame sidebar nav at tablet width — it uses absolute/fixed
-     positioning on desktop that causes overflow between 768–980px */
-  body.v35:has(div.outgame) div#side_navi,
-  body.v35:has(div#content.login) div#side_navi,
-  body.v35:has(div#content.signup) div#side_navi {
-    position: static !important;
-    float: none !important;
-    clear: both !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
-    min-height: auto !important;
-    height: auto !important;
-    box-sizing: border-box !important;
-    padding: 12px 16px !important;
-    margin: 0 auto !important;
-    inset: auto !important;
-    text-align: center !important;
-    background: #f9f9f9 !important;
-    background-image: none !important;
-    border-bottom: 2px solid #71D000 !important;
-    display: block !important;
-  }
-
-  body.v35:has(div.outgame) div#side_navi a#logo,
-  body.v35:has(div#content.login) div#side_navi a#logo,
-  body.v35:has(div#content.signup) div#side_navi a#logo {
-    display: none !important;
-  }
-
-  body.v35:has(div.outgame) div#side_navi p,
-  body.v35:has(div#content.login) div#side_navi p,
-  body.v35:has(div#content.signup) div#side_navi p {
-    margin: 0 !important;
-    line-height: normal !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    gap: 10px !important;
-  }
-
-  body.v35:has(div.outgame) div#side_navi p a,
-  body.v35:has(div#content.login) div#side_navi p a,
-  body.v35:has(div#content.signup) div#side_navi p a {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 10px 8px !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    background: #fff !important;
-    border: 1px solid #ddd !important;
-    border-radius: 20px !important;
-    color: #333 !important;
-    text-decoration: none !important;
-    text-align: center !important;
-    min-height: 40px !important;
-    box-sizing: border-box !important;
-    line-height: 1.2 !important;
-    background-image: none !important;
-    word-break: break-word !important;
-    overflow-wrap: anywhere !important;
-  }
-
-  /* ── Tablet form layout (login / signup / activate) ── */
-  body.v35 div#content.login,
-  body.v35 div#content.signup,
-  body.v35 div#content.activate,
-  body.v35 div#content.logout {
-    float: none !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 24px 20px !important;
-    box-sizing: border-box !important;
-  }
-
-  body.v35 div.login h5,
-  body.v35 div.signup h5 {
-    text-align: center !important;
-    font-size: 28px !important;
-    margin: 0 auto 16px !important;
-  }
-
-  body.v35 div.login p,
-  body.v35 div.signup p {
-    text-align: center !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
-  }
-
-  body.v35 div.login table#login_form,
-  body.v35 div.signup table,
-  body.v35 div.login table {
-    width: 100% !important;
-    max-width: 480px !important;
-    margin: 20px auto !important;
-    border: none !important;
-    border-radius: 12px !important;
-    background: #fdfdfd !important;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
-    padding: 20px !important;
-    box-sizing: border-box !important;
-    display: block !important;
-    overflow: visible !important;
-    white-space: normal !important;
-  }
-
-  body.v35 div.login table#login_form tbody,
-  body.v35 div.signup table tbody,
-  body.v35 div.login table tbody {
-    display: block !important;
-    width: 100% !important;
-  }
-
-  body.v35 div.login table#login_form tr,
-  body.v35 div.signup table tr,
-  body.v35 div.login table tr {
-    display: flex !important;
-    flex-direction: column !important;
-    margin-bottom: 14px !important;
-  }
-
-  body.v35 div.login table#login_form th,
-  body.v35 div.signup table th,
-  body.v35 div.login table th {
-    display: block !important;
-    width: 100% !important;
-    text-align: start !important;
-    padding: 0 0 5px 2px !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    color: #555 !important;
-  }
-
-  body.v35 div.login table#login_form td,
-  body.v35 div.signup table td,
-  body.v35 div.login table td {
-    display: block !important;
-    width: 100% !important;
-    padding: 0 !important;
-  }
-
-  body.v35 div.login table td input.text,
-  body.v35 div.signup table td input.text,
-  body.v35 div.login input.text {
-    width: 100% !important;
-    padding: 12px 14px !important;
-    font-size: 15px !important;
-    border: 2px solid #ddd !important;
-    border-radius: 8px !important;
-    box-sizing: border-box !important;
-    background: #fff !important;
-    min-height: 48px !important;
-  }
-
-  body.v35 div.login p.btn,
-  body.v35 div.signup p.btn {
-    margin: 16px auto 0 !important;
-    max-width: 480px !important;
-    padding: 0 20px !important;
-    box-sizing: border-box !important;
-  }
-
-  body.v35 div.login p.btn button#btn_login,
-  body.v35 div.signup p.btn button {
-    display: block !important;
-    width: 100% !important;
-    min-height: 50px !important;
-    font-size: 16px !important;
-    font-weight: bold !important;
-    background: #69a531 !important;
-    color: #fff !important;
-    border: none !important;
-    border-radius: 8px !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
-  }
-
-  body.v35 div#side_info.outgame {
-    display: none !important;
-  }
-
-  /* ── Activate page inner containers ── */
-  body.v35 div.activate #activation,
-  body.v35 div.signup #activation {
-    float: none !important;
-    width: 100% !important;
-    max-width: 400px !important;
-    margin: 20px auto !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
-  }
-
-  body.v35 div.activate #activation table,
-  body.v35 div.signup #activation table {
-    margin: 0 auto !important;
-    width: 100% !important;
-    max-width: 360px !important;
-  }
-
-  body.v35 div.activate #activation table th,
-  body.v35 div.signup #activation table th {
-    font-size: 15px !important;
-    text-align: center !important;
-    padding: 0 0 8px !important;
-  }
-
-  body.v35 div.activate #activation table td input.text,
-  body.v35 div.signup #activation table td input.text {
-    width: 100% !important;
-    padding: 12px 14px !important;
-    font-size: 15px !important;
-    border: 2px solid #ddd !important;
-    border-radius: 8px !important;
-    box-sizing: border-box !important;
-    min-height: 48px !important;
-  }
-
-  body.v35 div.activate input#btn_send.dynamic_img,
-  body.v35 div.signup input#btn_send.dynamic_img {
-    display: block !important;
-    width: 140px !important;
-    min-height: 48px !important;
-    height: 48px !important;
-    margin: 16px auto !important;
-  }
-
-  body.v35 div#no_mail {
-    float: none !important;
-    clear: both !important;
-    width: 100% !important;
-    max-width: 400px !important;
-    margin: 0 auto !important;
-    text-align: center !important;
-  }
-}
-
-/* ==========================================================================
-   RTL  — Arabic layout overrides for outgame pages
-   ========================================================================== */
-@media screen and (max-width: 768px) {
-  /* Flip radio/checkbox margins — they're after the input in LTR, before in RTL */
-  [dir="rtl"] body.v35 div.signup input.radio {
-    margin-right: 0 !important;
-    margin-left: 6px !important;
-  }
-  [dir="rtl"] body.v35 div.signup input.check {
-    margin-right: 0 !important;
-    margin-left: 8px !important;
-  }
-  /* Flip radio label flex so text is on the left of the radio in RTL */
-  [dir="rtl"] body.v35 div.signup table#sign_select label {
-    flex-direction: row-reverse !important;
-    justify-content: flex-end !important;
-  }
-  /* no_mail list direction */
-  [dir="rtl"] body.v35 div#no_mail {
-    text-align: right !important;
-  }
-  [dir="rtl"] body.v35 div#no_mail ul {
-    padding-left: 0 !important;
-    padding-right: 20px !important;
-  }
-  /* Error box text alignment */
-  [dir="rtl"] body.v35 div.login p.error_box {
-    text-align: right !important;
-  }
-  /* Activation countdown stays centered in RTL */
-  [dir="rtl"] body.v35 div.activation_time {
-    direction: ltr !important;
-    text-align: center !important;
-  }
-}
-

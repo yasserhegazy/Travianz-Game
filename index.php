@@ -293,7 +293,7 @@ AccessLogger::logRequest();
 	<?php if(defined('LANG') && LANG === 'ar'): ?>
 	
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=53" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 
 	<!-- Premium Mobile Overrides -->
 	<style type="text/css">
@@ -366,6 +366,7 @@ AccessLogger::logRequest();
 			}
 			
 			/* Remove the hamburger menu, mobile navbar, and redundant top green register button */
+			#navigation table.menu, 
 			label.public-hamburger, 
 			#public-nav-toggle, 
 			.public-sidebar-backdrop,
@@ -373,44 +374,6 @@ AccessLogger::logRequest();
 				display: none !important;
 				visibility: hidden !important;
 			}
-			
-			/* Style the main menu to be a flex row of pills on mobile */
-			#navigation table.menu {
-				display: flex !important;
-				flex-wrap: wrap !important;
-				justify-content: center !important;
-				position: absolute !important;
-				top: 90px !important;
-				width: 100% !important;
-				right: auto !important;
-				left: 0 !important;
-				z-index: 20 !important;
-				padding: 0 10px !important;
-				box-sizing: border-box !important;
-			}
-			#navigation table.menu tbody, #navigation table.menu tr {
-				display: flex !important;
-				flex-wrap: wrap !important;
-				justify-content: center !important;
-				width: 100% !important;
-				gap: 8px !important;
-			}
-			#navigation table.menu td {
-				display: block !important;
-			}
-			#navigation table.menu a {
-				display: block !important;
-				padding: 8px 12px !important;
-				background: rgba(255, 255, 255, 0.95) !important;
-				border-radius: 20px !important;
-				color: #333 !important;
-				font-weight: bold !important;
-				font-size: 13px !important;
-				text-decoration: none !important;
-				box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
-				border: 1px solid #ddd !important;
-			}
-			#navigation table.menu a span { padding: 0 !important; background: none !important; }
 
 			.stats-premium {
 				grid-template-columns: 1fr !important;

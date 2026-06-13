@@ -9,13 +9,9 @@ if($bindicate == 1) {
 } else if($bindicate == 11) {
 	echo "<p><span class=\"none\">".BUILDING_BEING_DEMOLISHED."</span></p>";
 } else {
-	$loopsame = ($building->isCurrent($id) || $building->isLoop($id)) ? 1 : 0;
-	$doublebuild = ($building->isCurrent($id) && $building->isLoop($id)) ? 1 : 0;
+	$loopsame = count($database->getBuildingByField($village->wid, $id));
+	$doublebuild = 0;
 	$master = count($database->getMasterJobsByField($village->wid,$id));
-
-	// master and loopsame would have duplicated level display,
-    // so we need to decrease loopsame if master is the only job left
-	if ($master == 1 && $loopsame == 1) $loopsame = 0;
 
     //-- If available resources combined are not enough, remove NPC button
 	$uprequire = $building->resourceRequired($id,$village->resarray['f'.$id.'t'],1 + $loopsame + $doublebuild + $master);
@@ -155,7 +151,7 @@ $total_required = (int)($uprequire['wood'] + $uprequire['clay'] + $uprequire['ir
         else {
         echo "<a class=\"build\" href=\"dorf2.php?a=$id&c=$session->checker\">".UPGRADE_LEVEL." ";
         }
-		echo $village->resarray['f'.$id]+($loopsame > 0 ? 2:1);
+		echo $village->resarray['f'.$id] + 1 + $loopsame + $master;
 		echo ".</a> <span class=\"none\">".WAITING."</span> ";
     }
 

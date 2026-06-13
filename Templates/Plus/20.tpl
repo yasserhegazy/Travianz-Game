@@ -153,21 +153,18 @@ if (isset($_POST['activate_protection']) && isset($_POST['password'])) {
         exit;
     }
 
-    if ($session->sit == 0) {
-        // Remove protection
-        $stmtUpdate = mysqli_prepare($database->dblink, "UPDATE " . TB_PREFIX . "users SET gold_protect = 0 WHERE `id` = ?");
-        mysqli_stmt_bind_param($stmtUpdate, 'i', $session->uid);
-        mysqli_stmt_execute($stmtUpdate);
-        mysqli_stmt_close($stmtUpdate);
+if ($session->sit == 0) {
+    // Remove gold/manual protection
+    $stmtUpdate = mysqli_prepare($database->dblink, "UPDATE " . TB_PREFIX . "users SET gold_protect = 0, protect = 0 WHERE id = ?");
+    mysqli_stmt_bind_param($stmtUpdate, 'i', $session->uid);
+    mysqli_stmt_execute($stmtUpdate);
+    mysqli_stmt_close($stmtUpdate);
 
-        header("Location: plus.php?id=3&success=protection_removed");
-        exit;
-    } else {
-        header("Location: plus.php?id=3&error=sit_active");
-        exit;
-    }
-} else {
-    header("Location: plus.php?id=3");
+    header("Location: plus.php?id=3&success=protection_removed");
     exit;
+} else {
+    header("Location: plus.php?id=3&error=sit_active");
+    exit;
+}
 }
 ?>

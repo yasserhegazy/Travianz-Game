@@ -1780,3 +1780,50 @@ define('BUILDINGS', 'The Buildings');
 
 define('UPGRADE_TO_MAX_LEVEL', 'Upgrade to max level (20)');
 define('GOLD_COST_REMAINING', 'gold');
+
+define('STORAGE_UNIQUE', 'Unique storage masterplan');
+define('STORAGE_UNIQUEVILLAGE', 'Babylonian Tablet (Unique)');
+define('ATTACKER_UNIQUE', 'Unique attacker bonus');
+define('ATTACKER_UNIQUEVILLAGE', 'Unique attacker artifact');
+define('DEFENDER_UNIQUE', 'Unique defender bonus');
+define('DEFENDER_UNIQUEVILLAGE', 'Unique defender artifact');
+define('OASIS_UNIQUE', 'Unique oasis bonus');
+define('OASIS_UNIQUEVILLAGE', 'Unique oasis artifact');
+define('RAID_UNIQUE', 'Unique raid bonus');
+define('RAID_UNIQUEVILLAGE', 'Unique raid artifact');
+define('STEALTH_UNIQUE', 'Unique stealth bonus');
+define('STEALTH_UNIQUEVILLAGE', 'Unique stealth artifact');
+
+define('ATTACKER_DESC', 'A legendary artifact sculpted in the age of the great wars. It is said that whoever holds it, their armies turn into a ruthless storm.');
+define('DEFENDER_DESC', 'A massive ancient shield that stood before the most violent wars throughout history. It is rumored that villages with this artifact become legendary fortresses.');
+define('OASIS_DESC', 'A rare artifact linked to the secrets of fertile lands. It is said that its owner can extend their influence over more oases.');
+define('RAID_DESC', 'When armies march under the banner of this artifact, booty is no longer just a gain... it becomes a sweep that empties villages of their goods.');
+define('STEALTH_DESC', 'These artifacts are known to be the most terrifying in times of war, giving your armies the ability to move silently and deceive enemies.');
+
+define('ATTACKER_SMALL', 'Savage attacker');
+define('ATTACKER_LARGE', 'Great attacker');
+define('ATTACKER_SMALLVILLAGE', 'Attacking artifact');
+define('ATTACKER_LARGEVILLAGE', 'Attacking artifact');
+
+define('DEFENDER_SMALL', 'Valiant defender');
+define('DEFENDER_LARGE', 'Great defender');
+define('DEFENDER_SMALLVILLAGE', 'Defensive artifact');
+define('DEFENDER_LARGEVILLAGE', 'Defensive artifact');
+
+define('OASIS_SMALL', 'Slight oasis masterplan');
+define('OASIS_LARGE', 'Great oasis masterplan');
+define('OASIS_SMALLVILLAGE', 'Oasis artifact');
+define('OASIS_LARGEVILLAGE', 'Oasis artifact');
+
+define('RAID_SMALL', 'Slight raid masterplan');
+define('RAID_LARGE', 'Great raid masterplan');
+define('RAID_SMALLVILLAGE', 'Raid artifact');
+define('RAID_LARGEVILLAGE', 'Raid artifact');
+
+define('STEALTH_SMALL', 'Slight stealth masterplan');
+define('STEALTH_LARGE', 'Great stealth masterplan');
+define('STEALTH_SMALLVILLAGE', 'Stealth artifact');
+define('STEALTH_LARGEVILLAGE', 'Stealth artifact');
+
+define('FOOL_LARGE', 'Artefact of the great fool');
+define('FOOL_LARGEVILLAGE', 'Tome of Madness');

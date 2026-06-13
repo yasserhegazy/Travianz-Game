@@ -22,4 +22,10 @@
         	echo "class=\"selected\"";
         }
 ?>"><?php echo LARGE_ARTEFACTS; ?></a>
+
+| <a href="build.php?id=<?php echo $id; ?>&t=4" <?php
+    if(isset($_GET['t']) && $_GET['t'] == 4) {
+        echo "class=\"selected\"";
+    }
+?>><?php echo UNIQUE_EFFECT; ?></a>
 </div>

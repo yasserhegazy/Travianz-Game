@@ -48,14 +48,13 @@
         			if($i == $search) echo "<tr class=\"hl \"><td class=\"ra  fc\" >";
         			else echo "<tr><td class=\"ra \" >";
 
-        			echo $i . ".</td>
-					<td class=\"hero \">
-					<img class=\"unit u" . $rankArray[$i]['unit'] . "\" alt=\"\" title=\"\" src=\"img/x.gif\"> " . $rankArray[$i]['name'] . "</td>
-					<td class=\"pla \"><center><a href=\"spieler.php?uid=" . $rankArray[$i]['uid'] . "\">" . $rankArray[$i]['owner'] . "</a></center></td>
-					<td class=\"lev \">" . $rankArray[$i]['level'] . "</td>
-					<td class=\"xp \">" . $rankArray[$i]['experience'] . "</td>
-					</tr>
-					";
+        			echo $i . "</td>
+                               <td class=\"hero \">
+                               <img class=\"unit u" . $rankArray[$i]['unit'] . "\" alt=\"\" title=\"\" src=\"img/x.gif\"> " . $rankArray[$i]['name'] . "</td>
+                               <td class=\"pla\"><center>".$database->getProtectedPlayerLink($rankArray[$i]['uid'], $rankArray[$i]['owner'])."</center></td>
+                               <td class=\"lev \">" . $rankArray[$i]['level'] . "</td>
+                               <td class=\"xp \">" . $rankArray[$i]['experience'] . "</td>
+                               </tr>";
         		}
         	}
         }

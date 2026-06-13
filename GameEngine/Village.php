@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+ini_set('display_errors', 1);
 #################################################################################
 ##              -= YOU MAY NOT REMOVE OR CHANGE THIS NOTICE =-                 ##
 ## --------------------------------------------------------------------------- ##
@@ -136,9 +137,8 @@ class Village {
 		}
 		
 		if($this->acrop < 0) {
-		    $this->acrop = 0; 
-		    $resourceUpdates['crop'] = 0; 
-		}
+    $resourceUpdates['crop'] = floor($this->acrop);
+}
 
 		if (count($resourceUpdates)) {
             $database->updateResource($this->wid, array_keys($resourceUpdates), array_values($resourceUpdates));

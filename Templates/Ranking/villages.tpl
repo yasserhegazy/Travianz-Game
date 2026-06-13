@@ -41,7 +41,9 @@ else $search = $_SESSION['search'];
                      
                      echo $i.".</td><td class=\"vil \" ><a href=\"karte.php?d=".$rankArray[$i]['wref']."&amp;c=".$generator->getMapCheck($rankArray[$i]['wref'])."\">".$rankArray[$i]['name']."</a></td>";
                      echo "<td class=\"pla \" ><a href=\"spieler.php?uid=".$rankArray[$i]['owner']."\">".$rankArray[$i]['user']."</a></td>";
-                     echo "<td class=\"hab\">".number_format($rankArray[$i]['pop'])."</td><td class=\"aligned_coords \" ><div class=\"cox\">(".$rankArray[$i]['x']."</div><div class=\"pi\">|</div><div class=\"coy\">".$rankArray[$i]['y'].")</div></td></tr>";
+                     echo "<td class=\"hab\">".number_format($rankArray[$i]['pop'])."</td><td class=\"aligned_coords\">
+(<span class=\"coordX\">".$rankArray[$i]['x']."</span>|<span class=\"coordY\">".$rankArray[$i]['y']."</span>)
+</td></tr>";
                  }
              }
          }

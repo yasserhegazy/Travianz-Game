@@ -42,7 +42,7 @@ if(isset($_POST['action']) == 'editSlot' && isset($_GET['eid']) && !empty($_GET[
     elseif(($_POST['x'] == "" || $_POST['y'] == "") && empty($_POST['target_id'])) $errormsg = "Enter the correct coordinates.";  	
     elseif($oasistype == 0 && $vdata == 0) $errormsg = "There is no village on those coordinates."; 	
     elseif($troops == 0) $errormsg = "No troops has been selected.";
-    elseif($database->hasBeginnerProtection($Wref) == 1) $errormsg = "Player under protection."; 
+    elseif($database->hasBeginnerProtection($Wref) == 1) $errormsg = "اللاعب تحت الحماية."; 
     elseif($_POST['target_id'] == $FLData['wref'] || $vdata['wref'] == $FLData['wref']) $errormsg = "You can't attack the same village you're sending troops from.";
     elseif($session->gold < 1) $errormsg = (defined('LANG') && LANG === 'ar') ? "ليس لديك ذهب كافٍ. تعديل قرية يكلف 1 ذهب." : "Not enough gold. Editing a village costs 1 gold.";
     else

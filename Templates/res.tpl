@@ -35,7 +35,7 @@ if (!empty($village)) {
     $woodClass = '';
     $clayClass = '';
     $ironClass = '';
-    $cropClass = ($crop < 0) ? ' crop-neg' : '';
+    $cropClass = ($acrop < 0) ? ' crop-neg' : '';
 ?>
 
 <div id="res">
@@ -63,20 +63,28 @@ if (!empty($village)) {
 			</div>
 		</div>
 
-		<?php if($acrop > 0){ ?>
+		<?php if($acrop != 0){ ?>
 		<div class="res-pill-wrap">
 			<div title="<?php echo number_format($crop); ?>" class="res-pill<?php echo $cropClass; ?>" data-prod="<?php echo $crop; ?>" data-max="<?php echo $maxcrop; ?>" style="--fill-percent: <?php echo $cropPercent; ?>%;">
 				<img src="img/x.gif" class="r4" alt="<?php echo CROP; ?>" title="<?php echo CROP; ?>" />
-				<span id="l1" dir="ltr"><span class="res-cur"><?php echo number_format($acrop); ?></span><span class="res-sep">/</span><span class="res-max"><?php echo number_format($maxcrop); ?></span></span>
+				<span id="11" dir="ltr">
+    <span class="res-cur"><?php echo number_format($acrop); ?></span>
+    <span class="res-sep">/</span>
+    <span class="res-max"><?php echo number_format($maxcrop); ?></span>
+</span>
 			</div>
 		</div>
 		<?php }else{ ?>
 		<div class="res-pill-wrap">
-			<div title="<?php echo number_format($crop); ?>" class="res-pill<?php echo $cropClass; ?>" data-prod="<?php echo $crop; ?>" data-max="<?php echo $maxcrop; ?>" style="--fill-percent: 0%;">
-				<img src="img/x.gif" class="r4" alt="<?php echo CROP; ?>" title="<?php echo CROP; ?>" />
-				<span dir="ltr"><span class="res-cur">0</span><span class="res-sep">/</span><span class="res-max"><?php echo number_format($maxcrop); ?></span></span>
-			</div>
-		</div>
+    <div title="<?php echo number_format($crop); ?>" class="res-pill <?php echo $cropClass; ?>" data-prod="<?php echo $crop; ?>" data-max="<?php echo $maxcrop; ?>" style="--fill-percent: <?php echo $cropPercent; ?>%;">
+        <img src="img/x.gif" class="r4" alt="<?php echo CROP; ?>" title="<?php echo CROP; ?>" />
+        <span dir="ltr">
+            <span class="res-cur"><?php echo number_format($acrop); ?></span>
+            <span class="res-sep">/</span>
+            <span class="res-max"><?php echo number_format($maxcrop); ?></span>
+        </span>
+    </div>
+</div>
 		<?php } ?>
 	</div>
     </div>
@@ -284,8 +292,8 @@ html[dir="rtl"] .res-prod-neg {
             var cur = Math.floor(d.startR + elapsed * (d.prod / 3600000));
 
             /* clamp */
-            if(cur > d.maxRes) cur = d.maxRes;
-            if(cur < 0)        cur = 0;
+if(cur > d.maxRes) cur = d.maxRes;
+if(cur < 0 && !pill.classList.contains('crop-neg')) cur = 0;
 
             /* Update ONLY .res-cur — never touch .res-sep or .res-max */
             d.curSpan.textContent = String(cur).replace(/\B(?=(\d{3})+(?!\d))/g, ",");

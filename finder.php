@@ -233,7 +233,7 @@ if ($wrefs) {
     echo " <link href='".$session->gpack."lang/".LANG."/lang.css?v2' rel='stylesheet' type='text/css' />";
 } ?>
 <script type="text/javascript">window.addEvent('domready', start);</script>
-<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
+<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 </head>
 <body class="v35 ie ie8">
 <script>if('scrollRestoration'in history)history.scrollRestoration='manual';window.scrollTo(0,0);window.addEventListener('load',function(){window.scrollTo(0,0);setTimeout(function(){window.scrollTo(0,0)},0);setTimeout(function(){window.scrollTo(0,0)},50);setTimeout(function(){window.scrollTo(0,0)},100);setTimeout(function(){window.scrollTo(0,0)},200)});</script>

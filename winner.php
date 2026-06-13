@@ -2,24 +2,6 @@
 include_once("GameEngine/Generator.php");
 $start_timer = $generator->pageLoadTimeStart();
 
-#################################################################################
-## -= YOU MAY NOT REMOVE OR CHANGE THIS NOTICE =- 			        ##
-## ---------------------------------------------------------------------------  ##
-## Project:     TravianZ 							##
-## Version:     18.02.2014 							##
-## Description: When the player builds Wonder of the World      		##
-##              to level 100 the winner details are shown.      		##
-##              tells the players the game is over              		##
-## Authors:     aggenkeech - and a little help from Eyas95      		##
-## Page:        winner.php                                      		##
-## Fixed by:    Shadow  							##
-## License:     TravianZ Project 						##
-## Copyright:   TravianZ (c) 2010-2013. All rights reserved. 			##
-## URLs:        http://travian.shadowss.ro 					##
-## Source code: https://github.com/Shadowss/TravianZ/	 			##
-## 										##
-#################################################################################
-
 use App\Utils\AccessLogger;
 
 if (!function_exists('mysqli_result')) {
@@ -147,7 +129,10 @@ if(isset($_GET['newdid'])) {
 
         $sql = mysqli_query($database->dblink,"SELECT ww_lastupdate FROM ".TB_PREFIX."fdata WHERE vref = '$vref'");
         $finishconstruction = mysqli_result($sql, 0);
+		
 ?>
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html<?php echo (defined('LANG') && LANG === 'ar') ? ' dir="rtl"' : ''; ?>>
 	<head>
@@ -188,7 +173,7 @@ if(isset($_GET['newdid'])) {
 	<?php if(defined('LANG') && LANG === 'ar'): ?>
 	
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 </head>
 	<body class="v35 ie ie8">
 <script>if('scrollRestoration'in history)history.scrollRestoration='manual';window.scrollTo(0,0);window.addEventListener('load',function(){window.scrollTo(0,0);setTimeout(function(){window.scrollTo(0,0)},0);setTimeout(function(){window.scrollTo(0,0)},50);setTimeout(function(){window.scrollTo(0,0)},100);setTimeout(function(){window.scrollTo(0,0)},200)});</script>

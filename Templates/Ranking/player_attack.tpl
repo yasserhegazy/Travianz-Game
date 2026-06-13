@@ -13,8 +13,30 @@ $search = $_SESSION['search'];
 			<thead>
 				<tr>
 					<th colspan="5">
-						<?php echo (defined('LANG') && LANG === 'ar') ? 'أنجح المهاجمين' : 'The most successful attackers'; ?>						<div id="submenu"><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>" href="statistiken.php?id=7"><img class="btn_top10" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>" /></a><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>" href="statistiken.php?id=32"><img class="btn_def" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>" /></a><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>" href="statistiken.php?id=31"><img class="active btn_off" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>" /></a></div>		    
-					</th>
+
+<?php echo (defined('LANG') && LANG === 'ar') ? 'أنجح المهاجمين' : 'The most successful attackers'; ?>
+
+<div id="submenu">
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>" href="statistiken.php?id=7">
+<img class="btn_top10" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>">
+</a>
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>" href="statistiken.php?id=32">
+<img class="btn_def" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>">
+</a>
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>" href="statistiken.php?id=31">
+<img class="active btn_off" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>">
+</a>
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'سارق' : 'looter'; ?>" href="statistiken.php?id=40">
+<img class="btn_loot" src="img/x.gif" style="width:30px;height:30px;background:url('gpack/travian_t4/img/s/loot.gif') no-repeat 0 top;" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'سارق' : 'looter'; ?>">
+</a>
+
+</div>
+
+</th>
 				</tr>
 		<tr><td></td><td><?php echo (defined('LANG') && LANG === 'ar') ? 'اللاعب' : 'Player'; ?></td><td><?php echo (defined('LANG') && LANG === 'ar') ? 'السكان' : 'Population'; ?></td><td><?php echo (defined('LANG') && LANG === 'ar') ? 'القرى' : 'Villages'; ?></td><td><?php echo (defined('LANG') && LANG === 'ar') ? 'النقاط' : 'Points'; ?></td></tr>
 		</thead><tbody>  
@@ -41,11 +63,10 @@ $search = $_SESSION['search'];
                     else echo "<tr><td class=\"ra \" >";
                     
                     echo $i.".</td><td class=\"pla \" >";
-                    if(isset($rankArray[$i]['access']) && $rankArray[$i]['access'] > 2){
-                        echo"<u><a href=\"spieler.php?uid=".$rankArray[$i]['id']."\">".$rankArray[$i]['username']."</a></u>";
-				    } else {
-				        echo"<a href=\"spieler.php?uid=".$rankArray[$i]['id']."\">".$rankArray[$i]['username']."</a>";
-					}	
+                    echo $database->getProtectedPlayerLink(
+    $rankArray[$i]['id'],
+    $rankArray[$i]['username']
+);	
 					echo"</td><td class=\"pop \" >".number_format($rankArray[$i]['totalpop'])."";
 					echo "</td><td class=\"vil\">".$rankArray[$i]['totalvillages']."</td><td class=\"po \" >".$rankArray[$i]['apall']."</td></tr>";
                 }

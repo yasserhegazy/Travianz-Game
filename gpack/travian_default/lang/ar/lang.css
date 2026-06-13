@@ -19,17 +19,29 @@
 
 
 /* New CSS buttons */
-  .trav_buttons {
-  padding: 1px;
+.trav_buttons {
+    padding: 1px;
     border-radius: 5px;
-    padding-left:20px;
+    padding-left: 20px;
     padding-right: 20px;
     border: 1px solid #71d000;
     background-image: linear-gradient(to bottom,#fdfdfd,#c6c6c6);
     cursor: pointer;
     color: #7a7a7a;
     text-align: center;
-    font-weight: 700;
+
+    font-family: 'Noto Sans Arabic', Verdana, Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+}
+button.trav_buttons,
+input.trav_buttons,
+input[type="submit"].trav_buttons,
+input[type="button"].trav_buttons {
+    font-family: 'Noto Sans Arabic', Verdana, Arial, Helvetica, sans-serif !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+	line-height: 1.5 !important;
 }
 .trav_buttons:hover {
     border-color: #a6ac9f;
@@ -37,6 +49,48 @@
 .trav_buttons:active {
     border-color: #71d000 !important;
     background: #fff !important;
+}
+#map_rulers div[id^="mx"]{
+    color:#1f3b73 !important;
+    font-weight:700;
+}
+
+#map_rulers div[id^="my"]{
+    color:#7b1e2b !important;
+    font-weight:700;
+}
+/* زر الواحات والقمحيات */
+.mapFinderBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 160px;
+    height: 28px;
+
+    margin-top: 8px;
+
+    border: 1px solid #6a8f13;
+    border-radius: 4px;
+
+    background: linear-gradient(to bottom, #8fcf2e, #6ea31b);
+    color: #fff !important;
+
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.mapFinderBtn:hover {
+    background: linear-gradient(to bottom, #9ddb36, #7ab51e);
+}
+
+.mapFinderBtn svg {
+    margin-right: 6px;
+}
+#map_btn_go{
+    width:90px;
+    margin-top:6px;
+    margin-right:75px;
 }
 
 /* Old buttons */
@@ -110,3 +164,346 @@ div.plus table#plus_features td.preview img.sort {width:200px; height:38px; back
 div.plus table#plus_features td.preview img.st1 {width:200px; height:90px; background-image:url(p/st1.gif);}
 div.plus table#plus_features td.preview img.xxl_map {width:146px; height:112px; background-image:url(p/xxl_map.gif);}
 input#btn_search {width:97px; background-image: url(b/search.gif);}
+
+.goldCost{
+    font-weight:700;
+    font-size:13px;
+	margin-right:10px;
+}
+.goldText{
+    font-weight:normal;
+}
+.coordX{
+    color:#0b2f5b;
+    font-weight:700;
+}
+
+.coordY{
+    color:#7a1f1f;
+    font-weight:700;
+}
+
+.coordXInput{
+    color:#0b2f5b !important;
+    font-weight:700 !important;
+}
+
+.coordYInput{
+    color:#7a1f1f !important;
+    font-weight:700 !important;
+}
+#x{
+    color:#0b2f5b;
+    font-weight:bold;
+}
+
+#y{
+    color:#7a1f1f;
+    font-weight:bold;
+}
+.vilViewTitle{
+    text-align:center;
+}
+
+.vilViewCoords{
+    display:block;
+    margin-top:-6px;
+    direction:ltr;
+    unicode-bidi:isolate;
+    font-size:0.85em;
+	line-height:1;
+}
+.sendMainTable{
+    width:96%;
+    max-width:620px;
+    margin:0 0 8px auto;
+    table-layout:fixed;
+}
+
+.sendMainTable td{
+    vertical-align:top;
+}
+
+.sendSearchCell{
+    width:40%;
+    padding-left:1%;
+}
+
+.sendUnitsCell{
+    width:60%;
+}
+
+.sendBoxTable{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.sendBoxTable th{
+    background:#e7e7e7;
+    font-weight:bold;
+    text-align:center;
+    padding:4px;
+}
+
+.sendBoxTable td{
+    border:1px solid #ddd;
+    padding:3px;
+}
+
+.sendLabel{
+    width:32%;
+    font-weight:bold;
+    text-align:right;
+    white-space:nowrap;
+}
+
+.sendText{
+    width:96%;
+}
+
+.sendCoord{
+    width:28%;
+}
+
+.sendUnitInput{
+    width:72%;
+    text-align:right;
+    white-space:nowrap;
+}
+
+.sendTroopInput{
+    width:72%;
+}
+
+.sendAllCell{
+    width:28%;
+    text-align:center;
+    font-weight:bold;
+}
+
+.sendMissionTable{
+    width:80%;
+    max-width:520px;
+    margin:8px auto;
+    text-align:center;
+    table-layout:fixed;
+}
+
+.sendMissionTable td{
+    border:1px solid #ddd;
+    padding:5px;
+}
+
+.sendButtonBox{
+    text-align:center;
+    margin-top:8px;
+}
+.sendCoordsCell{
+    white-space:nowrap;
+    text-align:center;
+}
+
+.sendCoordsCell .coordX,
+.sendCoordsCell .coordY{
+    display:inline-block;
+    margin:0 3%;
+    font-weight:bold;
+}
+
+.sendCoordsCell .sendCoord{
+    width:22%;
+    min-width:32px;
+    max-width:45px;
+}
+.sendCenter{
+    text-align:center;
+}
+.sendCoordsCell{
+    white-space:nowrap;
+    text-align:center;
+}
+
+.sendCoordsCell .coordXInput,
+.sendCoordsCell .coordYInput{
+    width:22%;
+    max-width:45px;
+}
+.sendCenter .trav_buttons{
+    margin:0 auto;
+}
+.sendBoxTable{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:1px;
+    background:#cfcfcf;
+}
+
+.sendBoxTable thead th,
+.sendBoxTable thead td{
+    background:#e6e6e6;
+    background:linear-gradient(#f6f6f6, #d8d8d8);
+    border:1px solid #c5c5c5;
+    color:#333;
+    font-weight:bold;
+    text-align:center;
+    padding:5px 4px;
+}
+
+.sendBoxTable tbody td{
+    background:#f9f9f9;
+    border:1px solid #e0e0e0;
+    padding:3px;
+}
+
+.sendBoxTable tbody tr:nth-child(even) td{
+    background:#f3f3f3;
+}
+
+.sendMissionTable{
+    border-collapse:separate;
+    border-spacing:1px;
+    background:#cfcfcf;
+    width:100%;
+    margin:6px 0 0 0;
+    text-align:right;
+    table-layout:fixed;
+}
+
+.sendMissionTable td{
+    background:#fff;
+    border:1px solid #e0e0e0;
+    padding:4px 8px;
+    transition:all .2s ease;
+    cursor:pointer;
+}
+
+.sendMissionTable td.activeReinforce{
+    background:#dff5d8;
+}
+
+.sendMissionTable td.activeAttack{
+    background:#ffdede;
+}
+
+.sendMissionTable td.activeRaid{
+    background:#fff4c7;
+}
+.targetSuggestions{
+    display:none;
+    background:#fff;
+    border:1px solid #cfcfcf;
+    margin-top:2px;
+    max-height:120px;
+    overflow-y:auto;
+    text-align:right;
+    position:relative;
+    z-index:50;
+}
+
+.targetSuggestionItem{
+    padding:4px 6px;
+    cursor:pointer;
+    border-bottom:1px solid #eee;
+}
+
+.targetSuggestionItem:hover{
+    background:#eef6df;
+}
+.targetSelectedBox{
+    background:#eef6df;
+    border:1px solid #a8c97a;
+    padding:4px 6px;
+    font-weight:bold;
+    text-align:center;
+}
+
+.targetSelectedBox a{
+    color:#5b8f16;
+    text-decoration:none;
+}
+
+.targetSelectedBox a:hover{
+    text-decoration:underline;
+}
+
+.targetClearBtn{
+    color:#c00000;
+    cursor:pointer;
+    font-weight:bold;
+    margin-right:8px;
+    font-size:14px;
+}
+
+.targetClearBtn:hover{
+    color:#ff0000;
+    text-decoration:none;
+}
+.marketMainTable{
+    width:620px;
+    margin:10px auto;
+    table-layout:fixed;
+}
+
+.marketSearchHead{
+    width:40%;
+}
+
+.marketResourceHead{
+    width:60%;
+}
+
+.marketSearchSide,
+.marketResourceSide{
+    vertical-align:top;
+}
+
+.marketInnerTable{
+    width:100%;
+    table-layout:fixed;
+}
+
+.marketSearchInput{
+    width:125px;
+}
+
+.marketResTable .ico{
+    width:16px;
+    text-align:center;
+}
+.marketResTable .ico img{
+    margin:0 auto;
+    display:block;
+}
+.marketResTable .val{
+    width:105px;
+}
+
+.marketResTable .val input.text{
+    width:90px;
+}
+
+.marketResTable .max{
+    width:80px;
+    text-align:center;
+    white-space:nowrap;
+}
+
+.marketResTable .max a{
+    color:#5b7f13;
+    font-weight:bold;
+    text-decoration:none;
+    direction:ltr;
+}
+
+.sendCoordsCell{
+    text-align:center;
+}
+
+.sendCoord{
+    width:45px;
+    text-align:center;
+}
+
+.sendCenter{
+    text-align:center;
+}

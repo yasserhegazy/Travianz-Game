@@ -31,7 +31,7 @@ The email will be sent to following address: <span class="important"><?php echo 
                     </p> 
                     <input class="text" type="text" name="id" maxlength="10" /> 
                     <p> 
-                        <button value="ok" name="s1" id="btn_send" class="trav_buttons" alt="send button"> <?php echo ACTIVATE; ?> </button>
+                        <input type="image" value="ok" name="s1" src="img/x.gif" id="btn_send" class="dynamic_img" alt="send"/> 
                         <input type="hidden" name="ft" value="a2" /> 
                     </p> 
                 </form> 
@@ -196,7 +196,7 @@ CountBack(gsecs);
                     </p> 
                     <input class="text" type="text" name="id" maxlength="10" /> 
                     <p> 
-                        <button value="ok" name="s1" id="btn_send" class="trav_buttons" alt="send button"> <?php echo ACTIVATE; ?> </button>
+                        <input type="image" value="ok" name="s1" src="img/x.gif" id="btn_send" class="dynamic_img" alt="send"/> 
                         <input type="hidden" name="ft" value="a2" /> 
                     </p> 
                      

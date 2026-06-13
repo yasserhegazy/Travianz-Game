@@ -717,8 +717,8 @@ if ($session->access != BANNED) {
 			<tr>
 				<td class="man"><a href="#"><img class="help" src="img/x.gif" alt="" title="" /></a></td>
 				<td class="desc">
-					<b><?php echo (defined('LANG') && LANG === 'ar') ? 'تعبئة مخازن الحبوب ومنع السالب لمدة ساعة' : 'Crop Refill & Protect (1 hr)'; ?></b><br/>
-					<span><?php echo (defined('LANG') && LANG === 'ar') ? 'يملأ مخازن الحبوب للحد الأقصى ويمنعها من النزول تحت 1500' : 'Refills crop to max and prevents it from going below 1500.'; ?></span><br/>
+					<b><?php echo (defined('LANG') && LANG === 'ar') ? 'تعبئة مخازن الحبوب ومنع السالب' : 'Crop Refill & Protect (1 hr)'; ?></b><br/>
+					<span><?php echo (defined('LANG') && LANG === 'ar') ? 'يملأ مخازن الحبوب للحد الأقصى ويمنعها من النزول تحت 1,500' : 'Refills crop to max and prevents it from going below 1500.'; ?></span><br/>
                     <span class="run">
 <?php
 // Display remaining time if active
@@ -735,7 +735,7 @@ if ($res) {
                     </span>
 				</td>
 				<td class="dur">1 <?php echo (defined('LANG') && LANG === 'ar') ? 'ساعة' : 'Hour'; ?></td>
-				<td class="cost"><img src="img/x.gif" class="gold" alt="Gold" title="Gold" />350</td>
+				<td class="cost"><img src="img/x.gif" class="gold" alt="Gold" title="Gold" />10,000</td>
 				<td class="act">
 					<form method="POST" action="plus.php?id=21" style="display:inline;">
 						<input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>" />
@@ -763,7 +763,7 @@ if ($session->access != BANNED) {
 $protectTime = $golds['gold_protect'];
 $protectCount = (int)$golds['gold_protect_count'];
 $protectCost = 1000 * pow(2, $protectCount);
-$isProtected = ($protectTime > $date2);
+$isProtected = ($protectTime > $date2) || $database->hasBeginnerProtection($village->wid);
 ?>
 					<b><?php echo (defined('LANG') && LANG === 'ar') ? 'تفعيل الحماية 24 ساعة' : '24-Hour Gold Protection'; ?></b><br />
 					<span class="run">

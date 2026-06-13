@@ -536,6 +536,11 @@ class Technology {
 			$clay = ${'u'.$unit}['clay'] * $amt * ($great ? 3 : 1);
 			$iron = ${'u'.$unit}['iron'] * $amt * ($great ? 3 : 1);
 			$crop = ${'u'.$unit}['crop'] * $amt * ($great ? 3 : 1);
+// Academic artifact: reduce troop training resource cost
+$wood = round($database->getArtifactsValueInfluence($session->uid, $village->wid, 5, $wood, false));
+$clay = round($database->getArtifactsValueInfluence($session->uid, $village->wid, 5, $clay, false));
+$iron = round($database->getArtifactsValueInfluence($session->uid, $village->wid, 5, $iron, false));
+$crop = round($database->getArtifactsValueInfluence($session->uid, $village->wid, 5, $crop, false));
 
 			if($database->modifyResource($village->wid, $wood , $clay, $iron, $crop, 0) && $amt > 0) {
 				$database->trainUnit($village->wid, $unit + ($great ? 60 : 0), $amt, ${'u'.$unit}['pop'], $each, 0);

@@ -18,7 +18,7 @@
 // (0) = disabled
 define("ERROR_REPORT","%ERRORREPORT%");
 %ERROR%
-define('AUTOMATION_LOCK_FILE_NAME', 'var/automation.lck');
+define('AUTOMATION_LOCK_FILE_NAME', 'automation.lck');
 
 //////////////////////////////////
 // *****  SERVER SETTINGS  *****//
@@ -190,8 +190,6 @@ define("PLUS_PRODUCTION",%PLUS_PRODUCTION%);
 define("MEDALINTERVAL",%MEDALINTERVAL%);
 // ***** Great Workshop
 define("GREAT_WKS",%GREAT_WKS%);
-// ***** Great Warehouse/Granary
-define("GREAT_WHS",false);
 // ***** Tourn threshold
 define("TS_THRESHOLD",%TS_THRESHOLD%);  
 

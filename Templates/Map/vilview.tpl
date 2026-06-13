@@ -7,12 +7,17 @@ $oasis = mysqli_fetch_assoc($oasis1);
 $access=$session->access;
 $oasislink = '';
 ?>
-<h1><?php if($basearray['fieldtype']!=0){
-echo !$basearray['occupied']? ABANDVALLEY : $basearray['name']; echo " (".$basearray['x']."|".$basearray['y'].")";
+<h1 class="vilViewTitle"><?php
+if($basearray['fieldtype'] != 0){
+    echo !$basearray['occupied'] ? ABANDVALLEY : $basearray['name'];
 }else{
-echo !$oasis['conqured']? UNOCCUOASIS : OCCUOASIS; echo " (".$basearray['x']."|".$basearray['y'].")";
-$otext = !$oasis['conqured']? UNOCCUOASIS : OCCUOASIS;
-} ?></h1>
+    echo ((int)$oasis['owner'] > 3) ? OCCUOASIS : UNOCCUOASIS;
+}
+?>
+<span class="vilViewCoords">
+    (<span class="coordY"><?php echo $basearray['y']; ?></span>|<span class="coordX"><?php echo $basearray['x']; ?></span>)
+</span>
+</h1>
 <?php if($basearray['occupied'] && $basearray['capital']) { echo "<div id=\"dmain\">" . (defined('LANG') && LANG === 'ar' ? '(العاصمة)' : '(capital)') . "</div>"; }
 if($uinfo && $uinfo['owner'] == 3 && $uinfo['name'] == PLANVILLAGE){
 ?>
@@ -506,9 +511,9 @@ if($type >= 18 && $type <= 21){
 			echo "&raquo; " . (defined('LANG') && LANG === 'ar' ? 'إرسال قوات. (وضع الإجازة مفعل)' : 'Send troops. (Vacation mode on)');
           } else if($data2['protect'] < time() && $data2['gold_protect'] < time()) {
             echo $village->resarray['f39'] > 0 ? "<a href=\"a2b.php?s=2&z=".$_GET['d']."\">&raquo; ".SENDTROOP : "&raquo; ".SENDTROOP." (".BUILDRALLY.")"; 
-          } else {
-            echo "&raquo; ".SENDTROOP." (".BEGINPRO.")";
-          }
+         } else {
+    echo "<a href=\"a2b.php?z=".$_GET['d']."\">&raquo; ".SENDTROOP."</a>";
+}
           ?>
           </td>
 				</tr>

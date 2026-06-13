@@ -52,41 +52,63 @@ class Artifacts
      * @var array Normal Natars' artifacts
      */
     
-    NATARS_ARTIFACTS = [ARCHITECTS_DESC => [["type" => 1, "size" => 1, "name" => ARCHITECTS_SMALL, "vname" => ARCHITECTS_SMALLVILLAGE, "effect" => "(4x)", "quantity" => 6, "img" => 2],
-                                                  ["type" => 1, "size" => 2, "name" => ARCHITECTS_LARGE, "vname" => ARCHITECTS_LARGEVILLAGE, "effect" => "(3x)", "quantity" => 4, "img" => 2],
+    NATARS_ARTIFACTS = [ARCHITECTS_DESC => [["type" => 1, "size" => 1, "name" => ARCHITECTS_SMALL, "vname" => ARCHITECTS_SMALLVILLAGE, "effect" => "(4x)", "quantity" => 2, "img" => 2],
+                                                  ["type" => 1, "size" => 2, "name" => ARCHITECTS_LARGE, "vname" => ARCHITECTS_LARGEVILLAGE, "effect" => "(3x)", "quantity" => 2, "img" => 2],
                                                   ["type" => 1, "size" => 3, "name" => ARCHITECTS_UNIQUE,"vname" => ARCHITECTS_UNIQUEVILLAGE, "effect" => "(5x)", "quantity" => 1, "img" => 2]],
         
-                                   HASTE_DESC => [["type" => 2, "size" => 1, "name" => HASTE_SMALL, "vname" => HASTE_SMALLVILLAGE, "effect" => "(2x)", "quantity" => 6, "img" => 4],
-                                                  ["type" => 2, "size" => 2, "name" => HASTE_LARGE, "vname" => HASTE_LARGEVILLAGE, "effect" => "(1.5x)", "quantity" => 4, "img" => 4],
+                                   HASTE_DESC => [["type" => 2, "size" => 1, "name" => HASTE_SMALL, "vname" => HASTE_SMALLVILLAGE, "effect" => "(2x)", "quantity" => 2, "img" => 4],
+                                                  ["type" => 2, "size" => 2, "name" => HASTE_LARGE, "vname" => HASTE_LARGEVILLAGE, "effect" => "(1.5x)", "quantity" => 2, "img" => 4],
                                                   ["type" => 2, "size" => 3, "name" => HASTE_UNIQUE, "vname" => HASTE_UNIQUEVILLAGE, "effect" => "(3x)", "quantity" => 1, "img" => 4]],
         
-                                EYESIGHT_DESC => [["type" => 3, "size" => 1, "name" => EYESIGHT_SMALL, "vname" => EYESIGHT_SMALLVILLAGE, "effect" => "(5x)", "quantity" => 6, "img" => 5],
-                                                  ["type" => 3, "size" => 2, "name" => EYESIGHT_LARGE, "vname" => EYESIGHT_LARGEVILLAGE, "effect" => "(3x)", "quantity" => 4, "img" => 5],
+                                EYESIGHT_DESC => [["type" => 3, "size" => 1, "name" => EYESIGHT_SMALL, "vname" => EYESIGHT_SMALLVILLAGE, "effect" => "(5x)", "quantity" => 2, "img" => 5],
+                                                  ["type" => 3, "size" => 2, "name" => EYESIGHT_LARGE, "vname" => EYESIGHT_LARGEVILLAGE, "effect" => "(3x)", "quantity" => 2, "img" => 5],
                                                   ["type" => 3, "size" => 3, "name" => EYESIGHT_UNIQUE, "vname" => EYESIGHT_UNIQUEVILLAGE, "effect" => "(10x)", "quantity" => 1, "img" => 5]],
         
-                                    DIET_DESC => [["type" => 4, "size" => 1, "name" => DIET_SMALL, "vname" => DIET_SMALLVILLAGE, "effect" => "(50%)", "quantity" => 6, "img" => 6],
-                                                  ["type" => 4, "size" => 2, "name" => DIET_LARGE, "vname" => DIET_LARGEVILLAGE, "effect" => "(25%)", "quantity" => 4, "img" => 6],
-                                                  ["type" => 4, "size" => 3, "name" => DIET_UNIQUE, "vname" => DIET_UNIQUEVILLAGE, "effect" => "(50%)", "quantity" => 1, "img" => 6]],
+                                    DIET_DESC => [["type" => 4, "size" => 1, "name" => DIET_SMALL, "vname" => DIET_SMALLVILLAGE, "effect" => "(50%)", "quantity" => 2, "img" => 6],
+                                                  ["type" => 4, "size" => 2, "name" => DIET_LARGE, "vname" => DIET_LARGEVILLAGE, "effect" => "(25%)", "quantity" => 2, "img" => 6],
+                                                  ["type" => 4, "size" => 3, "name" => DIET_UNIQUE, "vname" => DIET_UNIQUEVILLAGE, "effect" => "(60%)", "quantity" => 1, "img" => 6]],
         
-                                ACADEMIC_DESC => [["type" => 5, "size" => 1, "name" => ACADEMIC_SMALL, "vname" => ACADEMIC_SMALLVILLAGE, "effect" => "(50%)", "quantity" => 6, "img" => 8],
-                                                  ["type" => 5, "size" => 2, "name" => ACADEMIC_LARGE, "vname" => ACADEMIC_LARGEVILLAGE, "effect" => "(25%)", "quantity" => 4, "img" => 8],
+                                ACADEMIC_DESC => [["type" => 5, "size" => 1, "name" => ACADEMIC_SMALL, "vname" => ACADEMIC_SMALLVILLAGE, "effect" => "(50%)", "quantity" => 2, "img" => 8],
+                                                  ["type" => 5, "size" => 2, "name" => ACADEMIC_LARGE, "vname" => ACADEMIC_LARGEVILLAGE, "effect" => "(25%)", "quantity" => 2, "img" => 8],
                                                   ["type" => 5, "size" => 3, "name" => ACADEMIC_UNIQUE, "vname" => ACADEMIC_UNIQUEVILLAGE, "effect" => "(50%)", "quantity" => 1, "img" => 8]],
         
-                                 STORAGE_DESC => [["type" => 6, "size" => 1, "name" => STORAGE_SMALL, "vname" => STORAGE_SMALLVILLAGE, "effect" => "(50%)", "quantity" => 6, "img" => 9],
-                                                  ["type" => 6, "size" => 2, "name" => STORAGE_LARGE, "vname" => STORAGE_LARGEVILLAGE, "effect" => "(25%)", "quantity" => 4, "img" => 9]],
+                                 STORAGE_DESC => [["type" => 6, "size" => 1, "name" => STORAGE_SMALL, "vname" => STORAGE_SMALLVILLAGE, "effect" => "(3x)", "quantity" => 2, "img" => 91],
+                                                  ["type" => 6, "size" => 2, "name" => STORAGE_LARGE, "vname" => STORAGE_LARGEVILLAGE, "effect" => "(2x)", "quantity" => 2, "img" => 91],
+                                                  ["type" => 6, "size" => 3, "name" => STORAGE_UNIQUE, "vname" => STORAGE_UNIQUEVILLAGE, "effect" => "(4x)", "quantity" => 1, "img" => 91]],
         
-                               CONFUSION_DESC => [["type" => 7, "size" => 1, "name" => CONFUSION_SMALL, "vname" => CONFUSION_SMALLVILLAGE, "effect" => "(200)", "quantity" => 6, "img" => 10],
-                                                  ["type" => 7, "size" => 2, "name" => CONFUSION_LARGE, "vname" => CONFUSION_LARGEVILLAGE, "effect" => "(100)", "quantity" => 4, "img" => 10],
+                               CONFUSION_DESC => [["type" => 7, "size" => 1, "name" => CONFUSION_SMALL, "vname" => CONFUSION_SMALLVILLAGE, "effect" => "(200)", "quantity" => 2, "img" => 10],
+                                                  ["type" => 7, "size" => 2, "name" => CONFUSION_LARGE, "vname" => CONFUSION_LARGEVILLAGE, "effect" => "(100)", "quantity" => 2, "img" => 10],
                                                   ["type" => 7, "size" => 3, "name" => CONFUSION_UNIQUE, "vname" => CONFUSION_UNIQUEVILLAGE, "effect" => "(500)", "quantity" => 1, "img" => 10]],
+												  
+								ATTACKER_DESC => [["type" => 10, "size" => 1, "name" => ATTACKER_SMALL, "vname" => ATTACKER_SMALLVILLAGE, "effect" => "(75%)", "quantity" => 2, "img" => 9],
+                                                  ["type" => 10, "size" => 2, "name" => ATTACKER_LARGE, "vname" => ATTACKER_LARGEVILLAGE, "effect" => "(50%)", "quantity" => 2, "img" => 9],
+                                                  ["type" => 10, "size" => 3, "name" => ATTACKER_UNIQUE, "vname" => ATTACKER_UNIQUEVILLAGE, "effect" => "(100%)", "quantity" => 1, "img" => 9]],
+
+                                DEFENDER_DESC => [["type" => 11, "size" => 1, "name" => DEFENDER_SMALL, "vname" => DEFENDER_SMALLVILLAGE, "effect" => "(75%)", "quantity" => 2, "img" => 10],
+                                                  ["type" => 11, "size" => 2, "name" => DEFENDER_LARGE, "vname" => DEFENDER_LARGEVILLAGE, "effect" => "(50%)", "quantity" => 2, "img" => 10],
+                                                  ["type" => 11, "size" => 3, "name" => DEFENDER_UNIQUE, "vname" => DEFENDER_UNIQUEVILLAGE, "effect" => "(100%)", "quantity" => 1, "img" => 10]],
+												  
+								    OASIS_DESC => [["type" => 12, "size" => 1, "name" => OASIS_SMALL, "vname" => OASIS_SMALLVILLAGE, "effect" => "+3", "quantity" => 2, "img" => 11],
+                                                   ["type" => 12, "size" => 2, "name" => OASIS_LARGE, "vname" => OASIS_LARGEVILLAGE, "effect" => "+2", "quantity" => 2, "img" => 11],
+                                                   ["type" => 12, "size" => 3, "name" => OASIS_UNIQUE, "vname" => OASIS_UNIQUEVILLAGE, "effect" => "+4", "quantity" => 1, "img" => 11]],
         
-                                    FOOL_DESC => [["type" => 8, "size" => 1, "name" => FOOL_SMALL, "vname" => FOOL_SMALLVILLAGE, "effect" => "", "quantity" => 10, "img" => "fool"],
-                                                  2 => ["type" => 8, "size" => 3, "name" => FOOL_UNIQUE, "vname" => FOOL_UNIQUEVILLAGE, "effect" => "", "quantity" => 1, "img" => "fool"]]],
-    
+		                             RAID_DESC => [["type" => 13, "size" => 1, "name" => RAID_SMALL, "vname" => RAID_SMALLVILLAGE, "effect" => "(200%)", "quantity" => 2, "img" => 12],
+                                                   ["type" => 13, "size" => 2, "name" => RAID_LARGE, "vname" => RAID_LARGEVILLAGE, "effect" => "(150%)", "quantity" => 2, "img" => 12],
+                                                   ["type" => 13, "size" => 3, "name" => RAID_UNIQUE, "vname" => RAID_UNIQUEVILLAGE, "effect" => "(300%)", "quantity" => 1, "img" => 12]],
+		
+		                          STEALTH_DESC => [["type" => 14, "size" => 1, "name" => STEALTH_SMALL, "vname" => STEALTH_SMALLVILLAGE, "effect" => "(75%)", "quantity" => 2, "img" => 13],
+                                                   ["type" => 14, "size" => 2, "name" => STEALTH_LARGE, "vname" => STEALTH_LARGEVILLAGE, "effect" => "(50%)", "quantity" => 2, "img" => 13],
+                                                   ["type" => 14, "size" => 3, "name" => STEALTH_UNIQUE, "vname" => STEALTH_UNIQUEVILLAGE, "effect" => "(90%)", "quantity" => 1, "img" => 131]],
+		
+                                     FOOL_DESC => [["type" => 8, "size" => 1, "name" => FOOL_SMALL, "vname" => FOOL_SMALLVILLAGE, "effect" => "", "quantity" => 1, "img" => "fool"],
+                                                   ["type" => 8, "size" => 2, "name" => FOOL_LARGE, "vname" => FOOL_LARGEVILLAGE, "effect" => "", "quantity" => 1, "img" => "fool"],
+                                                   ["type" => 8, "size" => 3, "name" => FOOL_UNIQUE, "vname" => FOOL_UNIQUEVILLAGE, "effect" => "", "quantity" => 1, "img" => "fool"]],
+    ],
     /**
      * @var array WW building plans Natars' artifacts
      */
     
-    NATARS_WW_BUILDING_PLANS =  [PLAN_DESC => [["type" => 11, "size" => 1, "name" => PLAN, "vname" => PLANVILLAGE, "effect" => "", "quantity" => 13, "img" => 1]]],
+    NATARS_WW_BUILDING_PLANS =  [PLAN_DESC => [["type" => 15, "size" => 1, "name" => PLAN, "vname" => PLANVILLAGE, "effect" => "", "quantity" => 12, "img" => 1]]],
                                     
     /**
      * @var array Natars' normal artifacts buildings
@@ -185,7 +207,21 @@ class Artifacts
     
     public function createNatars(){
         global $database;
-        
+        $natarsExists = $database->query("SELECT id FROM ".TB_PREFIX."users WHERE id = ".self::NATARS_UID." LIMIT 1");
+
+if(mysqli_num_rows($natarsExists) > 0) {
+    if($database->areArtifactsSpawned()) {
+        return true;
+    }
+
+    $possibleWids = $database->getVilWrefs(self::NATARS_CAPITAL_COORDINATES);
+    $wid = $database->getFreeVillage($possibleWids);
+
+    $this->addArtifactVillages(self::NATARS_ARTIFACTS);
+    return true;
+}
+
+
         //Register the Natars account, the Natars' password is the same as the MH's one
         $password = $database->getUserField(5, 'password', 0);
         $database->register(TRIBE5, $password, self::NATARS_EMAIL, self::NATARS_TRIBE, null, self::NATARS_UID, self::NATARS_DESC);
@@ -204,6 +240,7 @@ class Artifacts
         
         //Add artifacts
         $this->addArtifactVillages(self::NATARS_ARTIFACTS);
+		return true;
     }
     
     /**
@@ -321,7 +358,7 @@ class Artifacts
         
         $villageArrays = $troopArrays = $buildingArrays = $wids = [];
         for($i = 1; $i <= $numberOfVillages; $i++){
-            $villageArrays[] = ['wid' => 0, 'mode' => 5, 'type' => 3, 'kid' => ($i == $numberOfVillages ? rand(1, 4) : ($i % 4) + 1), 'capital' => 0, 'pop' => 233, 'name' => WWVILLAGE, 'natar' => 1];
+            $villageArrays[] = ['wid' => 0, 'mode' => 5, 'type' => 3, 'kid' => ($i == $numberOfVillages ? 5 : ($i % 4) + 1), 'capital' => 0, 'pop' => 233, 'name' => WWVILLAGE, 'natar' => 1];
             if($addTroops) $troopArrays[1][] = array_values(($this->natarsWWVillagesUnits)());
             $buildingArrays[1][] = array_values(self::NATARS_WW_VILLAGES_BUILDINGS);
         }
@@ -353,7 +390,7 @@ class Artifacts
         
         //Get all inactive artifacts that have to be activated --> (24 hours / Speed of the server)
         $time = time();
-        $artifacts = $database->getInactiveArtifacts(round($time - (86400 / (SPEED == 2 ? 1.5 : (SPEED == 3 ? 2 : SPEED)))));
+        $artifacts = $database->getInactiveArtifacts($time);
         
         if(!empty($artifacts)){
             
@@ -455,11 +492,11 @@ class Artifacts
         $nextEffect = "-";
 
         if ( is_array($artifact) ) {
-          if($artifact['size'] == 1 && $artifact['type'] != 11){
+          if($artifact['size'] == 1 && $artifact['type'] != 15){
             $requiredLevel = 10;
             $effectInfluence = VILLAGE;
           }else{
-            $requiredLevel = $artifact['type'] != 11 ? 20 : 10;
+            $requiredLevel = $artifact['type'] != 15 ? 20 : 10;
             $effectInfluence = ACCOUNT;
           }
 
@@ -509,7 +546,7 @@ class Artifacts
               $betterorbadder = $artifactBadEffect ? SPIES_INCREASE : SPIES_DECRESE;
               break;
           }
-          $bonus = isset($betterorbadder) ? $betterorbadder." (<b>".str_replace(["(", ")"], "" , $effect)."</b>)" : (($kind == 11 && $artifact['active']) ? "<b>".WW_BUILDING_PLAN."</b>" : "<b>Not yet active</b>");
+          $bonus = isset($betterorbadder) ? $betterorbadder." (<b>".str_replace(["(", ")"], "" , $effect)."</b>)" : (($kind == 15 && $artifact['active']) ? "<b>".WW_BUILDING_PLAN."</b>" : "<b>Not yet active</b>");
         } else {
           $requiredLevel = 0;
           $active = 0;

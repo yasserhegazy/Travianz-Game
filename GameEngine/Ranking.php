@@ -86,6 +86,10 @@
 							$this->procDefRankArray();
 							$this->getStart($this->searchRank($session->uid, "userid"));
 							break;
+					    case 40:
+                            $this->procLootRankArray();
+                            $this->getStart($this->searchRank($session->uid, "userid"));
+                            break;
 						case 2:
 							$this->procVRankArray();
 							$this->getStart($this->searchRank($village->wid, "wref"));
@@ -114,6 +118,14 @@
 								$this->getStart($this->searchRank($get['aid'], "id"));
 							}
 							break;
+						case 44:
+                            $this->procALootRankArray();
+                            if($get['aid'] == 0) {
+                                $this->getStart(1);
+                            } else {
+                                $this->getStart($this->searchRank($get['aid'], "id"));
+                            }
+                            break;
 					}
 				} else {
 					$this->procRankArray();
@@ -405,7 +417,85 @@
 				}
 				$this->rankarray = $newholder;
 			}
+public function procLootRankArray() {
+    global $database;
 
+    $holder = array();
+
+    $q = "SELECT " . TB_PREFIX . "users.id userid, " . TB_PREFIX . "users.username username,
+    (
+        SELECT COUNT(" . TB_PREFIX . "vdata.wref)
+        FROM " . TB_PREFIX . "vdata
+        WHERE " . TB_PREFIX . "vdata.owner = userid AND type != 99
+    ) totalvillages,
+    (
+        SELECT SUM(" . TB_PREFIX . "vdata.pop)
+        FROM " . TB_PREFIX . "vdata
+        WHERE " . TB_PREFIX . "vdata.owner = userid
+    ) pop,
+    " . TB_PREFIX . "users.total_loot loot
+    FROM " . TB_PREFIX . "users
+    WHERE " . TB_PREFIX . "users.access < " . (INCLUDE_ADMIN ? "10" : "8") . "
+    AND " . TB_PREFIX . "users.id > 5
+    AND " . TB_PREFIX . "users.tribe <= 3
+    ORDER BY loot DESC, pop DESC, userid DESC";
+
+    $result = mysqli_query($database->dblink, $q)
+    or die(mysqli_error($database->dblink));
+
+    while($row = mysqli_fetch_assoc($result)) {
+        $value['userid'] = $row['userid'];
+        $value['username'] = $row['username'];
+        $value['totalvillages'] = $row['totalvillages'];
+        $value['id'] = $row['userid'];
+        $value['totalpop'] = $row['pop'];
+        $value['loot'] = $row['loot'];
+
+        array_push($holder, $value);
+    }
+
+    $newholder = array("pad");
+
+    foreach($holder as $key) {
+        array_push($newholder, $key);
+    }
+
+    $this->rankarray = $newholder;
+}
+public function procALootRankArray() {
+    global $database;
+
+    $holder = array();
+
+    $q = "SELECT 
+        a.id,
+        a.tag,
+        COUNT(u.id) members,
+        COALESCE(SUM(u.total_loot), 0) loot
+    FROM ".TB_PREFIX."alidata a
+    LEFT JOIN ".TB_PREFIX."users u ON u.alliance = a.id
+    WHERE a.id > 0
+    GROUP BY a.id, a.tag
+    ORDER BY loot DESC, members DESC, a.id DESC";
+
+    $result = mysqli_query($database->dblink, $q) or die(mysqli_error($database->dblink));
+
+    while($row = mysqli_fetch_assoc($result)) {
+        $value['id'] = $row['id'];
+        $value['tag'] = $row['tag'];
+        $value['members'] = $row['members'];
+        $value['loot'] = $row['loot'];
+
+        array_push($holder, $value);
+    }
+
+    $newholder = array("pad");
+    foreach($holder as $key) {
+        array_push($newholder, $key);
+    }
+
+    $this->rankarray = $newholder;
+}
 			public function procDefRankArray() {
 			    global $database;
 				//global $GLOBALS['db'], $multisort;

@@ -88,14 +88,26 @@ class Automation {
         				  "trainingComplete", "starvation", "celebrationComplete",
         				  "sendUnitsComplete", "loyaltyRegeneration", "sendreinfunitsComplete",
         				  "returnunitsComplete", "sendSettlersComplete", "spawnNatars",
-        				  "spawnWWVillages", "spawnWWBuildingPlans", "activateArtifacts"];
-        
+        				  "spawnWWVillages", "buildNatarWW", "registerWonderWinner", "spawnWWBuildingPlans", "activateArtifacts"];
+						  
+        if (!is_dir($autoprefix."GameEngine/Prevention")) {
+    mkdir($autoprefix."GameEngine/Prevention", 0777, true);
+}
         foreach($methodsArrays as $method){
         	$file = @fopen($autoprefix."GameEngine/Prevention/".$method.".txt", "a");
         	if($file) {
                 if(flock($file, LOCK_EX)) {
-            		call_user_func(array($this, $method));
-            		flock($file, LOCK_UN);     		
+                    // Isolate each automation method: a fatal/exception in one (e.g. an
+                    // undefined constant or a DB hiccup) must NOT abort the whole tick and
+                    // skip every method after it. Log and continue with the next one.
+                    try {
+                        call_user_func(array($this, $method));
+                    } catch (\Throwable $e) {
+                        error_log("Automation method '".$method."' failed: ".$e->getMessage()
+                            ." in ".$e->getFile().":".$e->getLine());
+                    } finally {
+                        flock($file, LOCK_UN);
+                    }
             	}
             	fclose($file);
             }
@@ -320,7 +332,7 @@ class Automation {
                       wood = IF(wood < 0, 0, wood),
                       clay = IF(clay < 0, 0, clay),
                       iron = IF(iron < 0, 0, iron),
-                      crop = IF(crop < 0, 0, crop),
+                      crop = crop,
                       maxstore = IF(maxstore < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", maxstore),
                       maxcrop = IF(maxcrop < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", maxcrop)
                   WHERE
@@ -342,7 +354,7 @@ class Automation {
                       wood = IF(wood < 0, 0, wood),
                       clay = IF(clay < 0, 0, clay),
                       iron = IF(iron < 0, 0, iron),
-                      crop = IF(crop < 0, 0, crop),
+                      crop = crop,
                       maxstore = IF(maxstore < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", maxstore),
                       maxcrop = IF(maxcrop < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", maxcrop)
                   WHERE
@@ -448,14 +460,18 @@ class Automation {
                     mysqli_query($database->dblink,"TRUNCATE ".TB_PREFIX."bdata");
                 }
 
-                // TODO: find out what exactly these conditions are for
                 // no special military conditioning for Teutons and Gauls
-                if ($database->getUserField($villageOwner, "tribe", 0) != 1) $loopconUpdates[$indi['wid']] = '';                 
-                else
-                {
+                if (!isset($loopconUpdates[$indi['wid']])) $loopconUpdates[$indi['wid']] = [];
+                
+                if ($database->getUserField($villageOwner, "tribe", 0) != 1) {
+                    $loopconUpdates[$indi['wid']][] = '';
+                } else {
                     // special condition for Roman military buildings
-                    if ($indi['field'] > 18) $loopconUpdates[$indi['wid']] = ' AND field > 18';                    
-                    else $loopconUpdates[$indi['wid']] = ' AND field < 19';                                      
+                    if ($indi['field'] > 18) {
+                        $loopconUpdates[$indi['wid']][] = ' AND field > 18';
+                    } else {
+                        $loopconUpdates[$indi['wid']][] = ' AND field < 19';
+                    }
                 }
 
                 // Update ww last finish upgrade
@@ -477,18 +493,18 @@ class Automation {
         // update statistical data for affected villages
         foreach ($villagesAffected as $affected_id) $this->recountPop($affected_id, false);
 
-        // update data that can be done in one swoop instead of using multiple update queries
-        // no special checks for Romans
-        foreach ($loopconUpdates as $villageId => $updateCondition) {
-            $database->query(
-                "UPDATE
-                    ".TB_PREFIX."bdata
-                 SET
-                    loopcon = 0
-                 WHERE
-                    loopcon = 1 AND
-                    master = 0 AND
-                    wid = ".$villageId.$updateCondition);
+        foreach ($loopconUpdates as $villageId => $conditions) {
+            foreach ($conditions as $updateCondition) {
+                // Find the next building in loopcon (earliest timestamp/id)
+                $q = "SELECT id FROM ".TB_PREFIX."bdata 
+                      WHERE loopcon = 1 AND master = 0 AND wid = ".$villageId.$updateCondition." 
+                      ORDER BY timestamp ASC LIMIT 1";
+                $result = $database->query_return($q);
+                if (count($result) > 0) {
+                    $nextJobId = $result[0]['id'];
+                    $database->query("UPDATE ".TB_PREFIX."bdata SET loopcon = 0 WHERE id = ".$nextJobId);
+                }
+            }
         }
 
         // delete all processed entries
@@ -1295,16 +1311,11 @@ class Automation {
 
                     $battlepart = $battle->calculateBattle($Attacker, $Defender, $def_wall, $att_tribe, $def_tribe, $residence, $attpop, $defpop, $type, $def_ab, $att_ab1, $att_ab2, $att_ab3, $att_ab4, $att_ab5, $att_ab6, $att_ab7, $att_ab8, $tblevel, $stonemason, $walllevel, 0, 0, 0, $AttackerID, $DefenderID, $AttackerWref, $DefenderWref, $conqureby, $enforcementarray);
 
-                    // ─── Battle Info Variables ──────────────────────────────────────────────────
-                    // Initialise all info fields used when generating the report CSV.
-                    // hero_pic must be set here as a fallback to guarantee the hero
-                    // information row is always rendered in the report template.
-                    $info_cat   = ",";
-                    $info_chief = ",";
-                    $info_ram   = ",";
-                    $info_hero  = ",";
-                    $hero_pic   = $hero_pic ?? 'hero';
-                    // ────────────────────────────────────────────────────────────────────────────
+                    //Data for when troops return.
+                    //catapults look :D
+                    $info_cat = $info_chief = $info_ram = $info_hero = ",";
+                    $hero_pic = isset($hero_pic) ? $hero_pic : "hero"; // ensure hero_pic always defined
+
                     
                     //check to see if can destroy village
                     if (count($varray) > 1 && !$database->villageHasArtefact($DefenderWref) && !$to['natar']) {
@@ -1384,7 +1395,15 @@ class Automation {
                     						if ($i == 41) $i = 99;
                     						
                     						// 1st row of catapults pre-selected target calculations, if needed
-                    						if (!$catapults1TargetRandom && $bdo['f'.$i.'t'] == $catapultTarget && $bdo['f'.$i] > 0 && $i != 40)
+                    						if (!$catapults1TargetRandom && $bdo['f'.$i.'t'] == $catapultTarget && $bdo['f'.$i] > 0 && $i != 23 &&
+$i != 34 &&
+!(
+    $i == 27 &&
+    (
+        $database->getArtifactsValueInfluence($data['owner'], $data['to'], 1, 0, false) > 0 ||
+        $database->getArtifactsValueInfluence($data['owner'], $data['to'], 7, 0, false) > 0
+    )
+))
                     						{
                     							$j++;
                     							$_catapultsTarget1Levels[$j]=$bdo['f'.$i];
@@ -1415,7 +1434,7 @@ class Automation {
                     					for ($i = 1; $i <= 41; $i++)
                     					{
                     						if ($i == 41) $i = 99;
-                    						if ($bdo['f'.$i] > 0 && $i != 40) $list[] = $i;
+                    						if ($bdo['f'.$i] > 0) $list[] = $i;
                     					}
                     					$catapultTarget = $list[rand(0, count($list) - 1)];
                     				}
@@ -1443,7 +1462,15 @@ class Automation {
                     						if ($i == 41) $i = 99;
                     						
                     						// 2nd row of catapults pre-selected target calculations, if needed
-                    						if (!$catapults2TargetRandom && !$catapults2WillNotShoot && $bdo['f'.$i.'t'] == $catapultTarget2 && $bdo['f'.$i] > 0 && $i != 40)
+                    						if (!$catapults2TargetRandom && !$catapults2WillNotShoot && $bdo['f'.$i.'t'] == $catapultTarget2 && $bdo['f'.$i] > 0 && $i != 23 &&
+$i != 34 &&
+!(
+    $i == 27 &&
+    (
+        $database->getArtifactsValueInfluence($data['owner'], $data['to'], 1, 0, false) > 0 ||
+        $database->getArtifactsValueInfluence($data['owner'], $data['to'], 7, 0, false) > 0
+    )
+))
                     						{
                     							$j++;
                     							$_catapultsTarget2Levels[$j] = $bdo['f'.$i];
@@ -2188,7 +2215,7 @@ class Automation {
                                 $canqured = $database->canConquerOasis($data['from'], $data['to'], false);
                                 if ($canqured == 1 && $troopcount == 0) {
                                     $database->conquerOasis($data['from'], $data['to']);
-                                    $info_hero = $hero_pic.",Your hero has conquered this oasis".$xp;
+                                    $info_hero = $hero_pic.",قام بطلك باحتلال هذه الواحة".$xp;
                                 }else{
                                     if ($canqured == 3 && $troopcount == 0) {
                                         if ($type == 3) {
@@ -2226,10 +2253,10 @@ class Automation {
                         }
                     }elseif($data['t11'] > 0) {
                         if ($heroxp == 0) $xp = "";     
-                        else $xp = " but gained <b>".$heroxp."</b> XP from the battle.";
+                        else $xp = " لكنه إكتسب <b>".$heroxp."</b> نقاط خبرة من المعركة.";
                         
-                        if ($traped11 > 0) $info_hero = $hero_pic.",Your hero was trapped".$xp;                    
-                        else $info_hero = $hero_pic.",Your hero died".$xp;
+                        if ($traped11 > 0) $info_hero = $hero_pic.",تم أسر بطلك".$xp;                    
+                        else $info_hero = $hero_pic.",مات بطلك في المعركة".$xp;
                     }
                     
                     if ($DefenderID == 0) $natar = 0;
@@ -2260,28 +2287,8 @@ class Automation {
                             }
                             else $info_spy = "".$spy_pic.", There are no informations to show";                                                   
                         }
+                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.',0,0,0,0,0,'.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : ',').','. $data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.',,'.$unitstraped_att;
 
-                        // Build report CSV — spy/raid path (resources not looted)
-                        $spy_info = isset($info_spy) ? $info_spy : ',';
-                        $data2 = implode(',', [
-                            $from['owner'], $from['wref'], $owntribe,
-                            $unitssend_att, $unitsdead_att,
-                            0, 0, 0, 0, 0,                          // no loot on spy raids
-                            $to['owner'], $to['wref'], addslashes($to['name']),
-                            '', '', '',                              // reserved fields
-                            $targettribe,
-                            $unitssend_def[0], $unitsdead_def[0], $rom,
-                            $unitssend_def[1], $unitsdead_def[1], $ger,
-                            $unitssend_def[2], $unitsdead_def[2], $gal,
-                            $unitssend_def[3], $unitsdead_def[3], $nat,
-                            $unitssend_def[4], $unitsdead_def[4], $natar,
-                            $unitssend_def[5], $unitsdead_def[5],
-                            $DefenderHeroesTot, $DefenderHeroesDead,
-                            $info_ram, $info_cat, $info_chief, $spy_info,
-                            $data['t11'], $dead11,
-                            $herosend_def, $deadhero,
-                            '', $unitstraped_att,
-                        ]);
                     }else{
                         if(isset($village_destroyed) && $village_destroyed == 1 && $can_destroy==1){
                             //check if village pop=0 and no info destroy
@@ -2290,31 +2297,11 @@ class Automation {
                                           <img class=\"unit u".$catp_pic."\" src=\"img/x.gif\" alt=\"Catapult\" title=\"Catapult\" /> The village has been destroyed.</td></tr></tbody>";
                             }
                         }
-                        // Build report CSV — normal attack path (with looted resources)
-                        $spy_info = isset($info_spy) ? $info_spy : ',';
-                        $data2 = implode(',', [
-                            $from['owner'], $from['wref'], $owntribe,
-                            $unitssend_att, $unitsdead_att,
-                            $steal[0], $steal[1], $steal[2], $steal[3], $battlepart['bounty'],
-                            $to['owner'], $to['wref'], addslashes($to['name']),
-                            '', '', '',                              // reserved fields
-                            $targettribe,
-                            $unitssend_def[0], $unitsdead_def[0], $rom,
-                            $unitssend_def[1], $unitsdead_def[1], $ger,
-                            $unitssend_def[2], $unitsdead_def[2], $gal,
-                            $unitssend_def[3], $unitsdead_def[3], $nat,
-                            $unitssend_def[4], $unitsdead_def[4], $natar,
-                            $unitssend_def[5], $unitsdead_def[5],
-                            $DefenderHeroesTot, $DefenderHeroesDead,
-                            $info_ram, $info_cat, $info_chief, $spy_info,
-                            $data['t11'], $dead11,
-                            $herosend_def, $deadhero,
-                            $unitstraped_att,
-                        ]);
+                        $data2 = ''.$from['owner'].','.$from['wref'].','.$owntribe.','.$unitssend_att.','.$unitsdead_att.','.$steal[0].','.$steal[1].','.$steal[2].','.$steal[3].','.$battlepart['bounty'].','.$to['owner'].','.$to['wref'].','.addslashes($to['name']).',,,,'.$targettribe.','.$unitssend_def[0].','.$unitsdead_def[0].','.$rom.','.$unitssend_def[1].','.$unitsdead_def[1].','.$ger.','.$unitssend_def[2].','.$unitsdead_def[2].','.$gal.','.$unitssend_def[3].','.$unitsdead_def[3].','.$nat.','.$unitssend_def[4].','.$unitsdead_def[4].','.$natar.','.$unitssend_def[5].','.$unitsdead_def[5].','.$DefenderHeroesTot.','.$DefenderHeroesDead.','.$info_ram.','.$info_cat.','.$info_chief.','.(isset($info_spy) ? $info_spy : ',').','. $data['t11'].','.$dead11.','.$herosend_def.','.$deadhero.','.$unitstraped_att;
                     }
                   
                     if($totalsend_att - ($totaldead_att + (isset($totaltraped_att) ? $totaltraped_att : 0)) <= 0){
-                        $info_troop = "None of your soldiers returned.";
+                        $info_troop = "لم ينجُ أحد من جنودك.";
                     }
                     else $info_troop = "";
                     
@@ -2323,16 +2310,16 @@ class Automation {
 
                     //Undetected and detected in here.
                     if(!empty($scout)){
-                        for($i = 1; $i <= 10; $i++){
+                        for($i = 1; $i <= 11; $i++){
                             if($battlepart['casualties_attacker'][$i]){
                                 if($from['owner'] == 3){
-                                    $database->addNotice($to['owner'],$to['wref'],$targetally,20,''.addslashes($from['name']).' '.((defined('LANG') && LANG === 'ar') ? 'يستكشف' : 'scouts').' '.addslashes($to['name']).'',$data2,$AttackArrivalTime);
+                                    $database->addNotice($to['owner'],$to['wref'],$targetally,20,''.addslashes($from['name']).' '.((defined('LANG') && LANG === 'ar') ? 'يتجسس' : 'scouts').' '.addslashes($to['name']).'',$data2,$AttackArrivalTime);
                                     break;
                                 }else if($unitsdead_att == $unitssend_att && $defspy){ //fix by ronix
-                                    $database->addNotice($to['owner'],$to['wref'],$targetally,20,''.addslashes($from['name']).' '.((defined('LANG') && LANG === 'ar') ? 'يستكشف' : 'scouts').' '.addslashes($to['name']).'',$data2.',,'.$info_troop,$AttackArrivalTime);
+                                    $database->addNotice($to['owner'],$to['wref'],$targetally,20,''.addslashes($from['name']).' '.((defined('LANG') && LANG === 'ar') ? 'يتجسس' : 'scouts').' '.addslashes($to['name']).'',$data2.',,'.$info_troop,$AttackArrivalTime);
                                     break;
                                 }else if($defspy){ //fix by ronix
-                                    $database->addNotice($to['owner'],$to['wref'],$targetally,21,''.addslashes($from['name']).' '.((defined('LANG') && LANG === 'ar') ? 'يستكشف' : 'scouts').' '.addslashes($to['name']).'',$data2,$AttackArrivalTime);
+                                    $database->addNotice($to['owner'],$to['wref'],$targetally,21,''.addslashes($from['name']).' '.((defined('LANG') && LANG === 'ar') ? 'يتجسس' : 'scouts').' '.addslashes($to['name']).'',$data2,$AttackArrivalTime);
                                     break;
                                 }
                             }
@@ -2466,11 +2453,11 @@ class Automation {
                         $endtime += $AttackArrivalTime;
                         if($type == 1){
 							if($from['owner'] == 3){ // fix natar report by ronix
-								$database->addNotice($to['owner'], $to['wref'], $targetally, 20, '' . addslashes($from['name']) . ' ' . ((defined('LANG') && LANG === 'ar') ? 'يستكشف' : 'scouts') . ' ' . addslashes($to['name']) . '', $data2, $AttackArrivalTime);
+								$database->addNotice($to['owner'], $to['wref'], $targetally, 20, '' . addslashes($from['name']) . ' ' . ((defined('LANG') && LANG === 'ar') ? 'يتجسس على' : 'scouts') . ' ' . addslashes($to['name']) . '', $data2, $AttackArrivalTime);
 							}elseif($totaldead_att == 0 && $totaltraped_att == 0){
-								$database->addNotice($from['owner'], $to['wref'], $ownally, 18, '' . addslashes($from['name']) . ' ' . ((defined('LANG') && LANG === 'ar') ? 'يستكشف' : 'scouts') . ' ' . addslashes($to['name']) . '', $data2, $AttackArrivalTime);
+								$database->addNotice($from['owner'], $to['wref'], $ownally, 18, '' . addslashes($from['name']) . ' ' . ((defined('LANG') && LANG === 'ar') ? 'يتجسس على' : 'scouts') . ' ' . addslashes($to['name']) . '', $data2, $AttackArrivalTime);
 							}else{
-								$database->addNotice($from['owner'], $to['wref'], $ownally, 21, '' . addslashes($from['name']) . ' ' . ((defined('LANG') && LANG === 'ar') ? 'يستكشف' : 'scouts') . ' ' . addslashes($to['name']) . '', $data2, $AttackArrivalTime);
+								$database->addNotice($from['owner'], $to['wref'], $ownally, 21, '' . addslashes($from['name']) . ' ' . ((defined('LANG') && LANG === 'ar') ? 'يتجسس على' : 'scouts') . ' ' . addslashes($to['name']) . '', $data2, $AttackArrivalTime);
 							}
 						}else{
 							if((empty($totaldead_att) || $totaldead_att == 0) && (empty($totaltraped_att) || $totaltraped_att == 0)){
@@ -2497,7 +2484,11 @@ class Automation {
 								$totalstolengain = $steal[0] + $steal[1] + $steal[2] + $steal[3];
 								$totalstolentaken = ((isset($totalstolentaken) ? $totalstolentaken : 0) - ($steal[0] + $steal[1] + $steal[2] + $steal[3]));
 								$database->modifyPoints($from['owner'], 'RR', $totalstolengain);
+								$database->modifyPoints($from['owner'], 'total_gain', $totalstolengain);
+                                $database->modifyPoints($from['owner'], 'total_loot', $totalstolengain);
 								$database->modifyPoints($to['owner'], 'RR', $totalstolentaken);
+								$database->modifyPoints($to['owner'], 'total_loss', abs($totalstolentaken));
+                                $database->modifyPoints($to['owner'], 'total_loot', $totalstolentaken);
 								$database->modifyPointsAlly($targetally, 'RR', $totalstolentaken);
 								$database->modifyPointsAlly($ownally, 'RR', $totalstolengain);
                             }
@@ -2965,18 +2956,26 @@ class Automation {
      */
     
     private function spawnNatars(){
-    	global $database;
-    	
-    	//Check if Natars account is already created and if the time
-    	//is come and we have to create Natars and spawn their artifacts
-    	if($database->areArtifactsSpawned() || strtotime(START_DATE) + (NATARS_SPAWN_TIME * 86400) > time()) return;
-    	
-    	//Create the Natars account and his capital
-    	$this->artifacts->createNatars();
-    	
-    	//Write the system message
-    	$database->displaySystemMessage(ARTEFACT);
+    global $database;
+
+    // التحف ظهرت سابقاً، لا تعمل شيء
+    if($database->areArtifactsSpawned()) {
+        return;
     }
+
+    // وقت ظهور التحف لم يصل بعد
+    if(strtotime(START_DATE) + (NATARS_SPAWN_TIME * 86400) > time()) {
+        return;
+    }
+
+    // إنشاء التتار/قرى التحف
+    $created = $this->artifacts->createNatars();
+
+    // لا ترسل الرسالة إلا إذا التحف ظهرت فعلاً
+    if($created && $database->areArtifactsSpawned()) {
+        $database->displaySystemMessage(ARTEFACT);
+    }
+}
     
     /**
      * Spawn WW Villages
@@ -3015,12 +3014,173 @@ class Automation {
     	//Set the system message to contain the infos of the WW building plans
     	$database->displaySystemMessage(PLAN_INFO);
     }
-    
+    private function buildNatarWW() {
+
+    global $database;
+
+    // يبدأ البناء في اليوم المحدد في الإعدادات
+    if(strtotime(START_DATE) + (NATARS_WW_SPAWN_TIME * 86400) > time()) {
+        return;
+    }
+
+    // جلب إحدى قرى المعجزات التي يملكها التتار حالياً (نفس القرية دائماً للتركيز عليها)
+    $q = "SELECT wref FROM " . TB_PREFIX . "vdata 
+          WHERE owner = " . Artifacts::NATARS_UID . " 
+          AND natar = 1 
+          ORDER BY wref ASC 
+          LIMIT 1";
+
+    $result = $database->query_return($q);
+
+    if(empty($result)) {
+        return;
+    }
+
+    $wref = $result[0]['wref'];
+
+    // جلب مستوى المعجزة الحالي
+    $village = $database->getResourceLevel($wref);
+
+    // التحقق من الوقت المنقضي منذ آخر ترقية لمنع ترقية التتار بشكل متسارع
+    $lastUpdate = isset($village['ww_lastupdate']) ? $village['ww_lastupdate'] : 0;
+    if (time() - $lastUpdate < NATARS_WW_BUILD_INTERVAL) {
+        return;
+    }
+
+    // المعجزة في الخانة f99
+    $level = $village['f99'];
+
+    // إذا وصلت 100 نتوقف
+    if($level >= 100) {
+        return;
+    }
+
+    // رفع مستوى المعجزة
+    $newLevel = $level + 1;
+
+    $database->query("
+        UPDATE " . TB_PREFIX . "fdata 
+        SET f99 = $newLevel, ww_lastupdate = " . time() . " 
+        WHERE vref = $wref
+    ");
+
+    $database->query("
+        UPDATE " . TB_PREFIX . "vdata 
+        SET pop = pop + 5
+        WHERE wref = $wref
+    ");
+}
     /**
      * Automatically activate all artifacts that need to be activated
      *
      */
-    
+    private function registerWonderWinner() {
+    global $database;
+
+    $sql = mysqli_query($database->dblink, "
+        SELECT f.vref, f.ww_lastupdate, v.owner
+        FROM ".TB_PREFIX."fdata f
+        INNER JOIN ".TB_PREFIX."vdata v ON v.wref = f.vref
+        WHERE f.f99 = '100' AND f.f99t = '40'
+        LIMIT 1
+    ");
+
+    if(!$sql || mysqli_num_rows($sql) == 0) {
+        return;
+    }
+
+    $row = mysqli_fetch_assoc($sql);
+    $vref = (int)$row['vref'];
+    $owner = (int)$row['owner'];
+    $winDate = (int)$row['ww_lastupdate'];
+
+    if($winDate <= 0) {
+        $winDate = time();
+    }
+
+    $exists = mysqli_query($database->dblink, "
+        SELECT id FROM ".TB_PREFIX."winner_history
+        WHERE win_date = '".$winDate."'
+        AND is_hidden = 0
+        LIMIT 1
+    ");
+
+    if($exists && mysqli_num_rows($exists) > 0) {
+        return;
+    }
+
+    $userSql = mysqli_query($database->dblink, "
+        SELECT id, username, tribe, alliance
+        FROM ".TB_PREFIX."users
+        WHERE id = '".$owner."'
+        LIMIT 1
+    ");
+
+    if(!$userSql || mysqli_num_rows($userSql) == 0) {
+        return;
+    }
+
+    $user = mysqli_fetch_assoc($userSql);
+
+   $tribeName = '-';
+
+if((int)$user['tribe'] == 1) {
+    $tribeName = 'الرومان';
+} elseif((int)$user['tribe'] == 2) {
+    $tribeName = 'الجرمان';
+} elseif((int)$user['tribe'] == 3) {
+    $tribeName = 'الإغريق';
+} elseif((int)$user['tribe'] == 5) {
+    $tribeName = 'التتار';
+} elseif((int)$user['tribe'] == 6) {
+    $tribeName = 'العرب';
+} else {
+    return;
+}
+
+    $winnerName = $user['username'];
+    $winnerType = ((int)$user['tribe'] == 5) ? 'natars' : 'player';
+
+    if($winnerType == 'natars') {
+        $winnerName = 'التتار';
+        $tribeName = 'التتار';
+        $allianceName = '-';
+    } else {
+        $allianceName = '-';
+
+        if((int)$user['alliance'] > 0) {
+            $allianceSql = mysqli_query($database->dblink, "
+                SELECT tag
+                FROM ".TB_PREFIX."alidata
+                WHERE id = '".(int)$user['alliance']."'
+                LIMIT 1
+            ");
+
+            if($allianceSql && mysqli_num_rows($allianceSql) > 0) {
+                $alliance = mysqli_fetch_assoc($allianceSql);
+                if(!empty($alliance['tag'])) {
+                    $allianceName = $alliance['tag'];
+                }
+            }
+        }
+    }
+
+    mysqli_query($database->dblink, "
+        INSERT INTO ".TB_PREFIX."winner_history
+        (server_id, winner_name, tribe_name, alliance_name, winner_type, win_date, is_hidden, created_at)
+        VALUES
+        (
+            1,
+            '".mysqli_real_escape_string($database->dblink, $winnerName)."',
+            '".mysqli_real_escape_string($database->dblink, $tribeName)."',
+            '".mysqli_real_escape_string($database->dblink, $allianceName)."',
+            '".mysqli_real_escape_string($database->dblink, $winnerType)."',
+            '".$winDate."',
+            0,
+            '".time()."'
+        )
+    ");
+}
     private function activateArtifacts() {
         global $database;
         
@@ -4493,7 +4653,7 @@ class Automation {
             }
 
             // Top Robber of the period
-            $hofResult = mysqli_query($database->dblink, "SELECT u.id, u.username, u.RR, u.alliance FROM ".TB_PREFIX."users u WHERE u.id > 5 AND u.access < 8 AND u.RR > 0 ORDER BY u.RR DESC, u.id DESC LIMIT 1");
+            $hofResult = mysqli_query($database->dblink, "SELECT u.id, u.username, u.RR, u.Rc, u.alliance FROM ".TB_PREFIX."users u WHERE u.id > 5 AND u.access < 8 AND (u.RR - u.Rc) > 0 ORDER BY (u.RR - u.Rc) DESC, u.id DESC LIMIT 1");
             if ($hofResult && mysqli_num_rows($hofResult) > 0) {
                 $hofRow = mysqli_fetch_assoc($hofResult);
                 $alliName = '';

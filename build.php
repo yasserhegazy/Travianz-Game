@@ -350,7 +350,7 @@ if(isset($_GET['mode']) && $_GET['mode'] == 'troops' && isset($_GET['cancel']) &
 	<?php if(defined('LANG') && LANG === 'ar'): ?>
 	
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 </head>
 
 

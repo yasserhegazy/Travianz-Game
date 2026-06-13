@@ -97,6 +97,7 @@ $fh = fopen($myFile, 'w') or die("<br/><br/><br/>Can't open file: GameEngine\con
 		$text = preg_replace("'%ACTIVATE%'", $_POST['activate'], $text);
 		$text = preg_replace("'%MEDALINTERVAL%'", $_POST['medalinterval'], $text);
 		$text = preg_replace("'%GREAT_WKS%'", $_POST['great_wks'], $text);
+		$text = preg_replace("'%GREAT_WHS%'", $_POST['great_whs'], $text);
 		$text = preg_replace("'%TS_THRESHOLD%'", $_POST['ts_threshold'], $text);
 		$text = preg_replace("'%REG_OPEN%'", $_POST['reg_open'], $text);
 		$text = preg_replace("'%PEACE%'", $_POST['peace'], $text);

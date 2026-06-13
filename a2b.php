@@ -119,7 +119,7 @@ echo GP_LOCATE;
 	<?php if(defined('LANG') && LANG === 'ar'): ?>
 	
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 </head>
 
 
@@ -151,8 +151,7 @@ if(!empty($id)){
 		$ckey = $w;
 		include("Templates/a2b/sendback.tpl");
 	}else{
-		include("Templates/a2b/units_".$session->tribe.".tpl");
-		include("Templates/a2b/search.tpl");
+		include("Templates/a2b/send.tpl");
 	}
 }else if(isset($r)){
 	$enforce = $database->getEnforceArray($r, 0);
@@ -162,8 +161,7 @@ if(!empty($id)){
 		$ckey = $r;
 		include("Templates/a2b/sendback.tpl");
 	}else{
-		include ("Templates/a2b/units_".$session->tribe.".tpl");
-		include("Templates/a2b/search.tpl");
+		include("Templates/a2b/send.tpl");
 	}
 }else if(isset($delprisoners) && !empty($delprisoners)) $units->deletePrisoners($delprisoners);
 else{
@@ -171,8 +169,7 @@ else{
 		$coor = $database->getCoor($process['0']);
 		include("Templates/a2b/attack.tpl");
 	}else{
-		include("Templates/a2b/units_".$session->tribe.".tpl");
-		include("Templates/a2b/search.tpl");
+		include("Templates/a2b/send.tpl");
 	}
 }
 ?>

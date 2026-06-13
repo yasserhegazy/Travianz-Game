@@ -224,7 +224,7 @@ if($displayarray['vac_mode'] == 1) echo "<tr><th colspan='2'><font color='Maroon
                 echo "</td>";
             }      
             echo "<td class=\"hab\">".number_format($vil['pop'])."</td><td class=\"aligned_coords\">";
-            echo "<div class=\"cox\">(".$coor['x']."</div><div class=\"pi\">|</div><div class=\"coy\">".$coor['y'].")</div></td></tr>";
+            echo "<div class=\"cox\">(<span class=\"coordX\">".$coor['x']."</span></div><div class=\"pil\">|</div><div class=\"coy\"><span class=\"coordY\">".$coor['y']."</span>)</div></td></tr>";
         }
         echo "</tbody></table>";
 ?>

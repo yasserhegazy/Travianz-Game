@@ -157,7 +157,7 @@ if (isset($_GET['send']) && isset($_GET['from']))
 	<?php if(defined('LANG') && LANG === 'ar'): ?>
 	
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 </head>
 
 

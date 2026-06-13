@@ -227,7 +227,7 @@ function mb(zb){
     }
 }
 function executeTimer(zb){wb=nb()-timer[zb].start;if(wb>=0){ec=Math.round(timer[zb].start_res+wb*(timer[zb].production/3600000));if(ec>=timer[zb].max_res){ec=timer[zb].max_res;}
-else if(ec<0){ec=0;}
+else if(ec<0 && String(zb) != '11'){ec=0;}
 if(ec<timer[zb].max_res||timer[zb].production<0){window.setTimeout("executeTimer('"+zb+"')",timer[zb].ms);}
 fb[zb].value=ec;timer[zb].node.innerHTML=ec+'/'+timer[zb].max_res;
 /* ═══ Live Health Bar: update --fill-percent on parent .res-pill ═══ */

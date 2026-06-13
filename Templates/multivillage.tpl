@@ -24,7 +24,7 @@ if(isset($_GET['w'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&w=".$_GET['w']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['r'])) {
@@ -32,7 +32,7 @@ else if(isset($_GET['r'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&r=".$_GET['r']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['z'])) {
@@ -40,7 +40,7 @@ else if(isset($_GET['z'])) {
         <tr>
             <td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
             <td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&z=".$_GET['z']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-            <td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+            <td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
     }
 }
 else if(isset($_GET['o'])) {
@@ -48,7 +48,7 @@ else if(isset($_GET['o'])) {
         <tr>
             <td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
             <td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&o=".$_GET['o']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-            <td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+            <td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
     }
 }
 else if(isset($_GET['s'])) {
@@ -56,7 +56,7 @@ else if(isset($_GET['s'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&s=".$_GET['s']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['c'])) {
@@ -64,7 +64,7 @@ else if(isset($_GET['c'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : (isset($_GET['d']) ? "&d=".$_GET['d'] : '')).(($id>=19) ? "&id=".$id : "&c=".$_GET['c']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['t'])) {
@@ -72,7 +72,7 @@ else if(isset($_GET['t'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&t=".$_GET['t']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['d'])) {
@@ -80,7 +80,7 @@ else if(isset($_GET['d'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&d=".$_GET['d']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['aid'])) {
@@ -88,7 +88,7 @@ else if(isset($_GET['aid'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&aid=".$_GET['aid']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['uid'])) {
@@ -96,7 +96,7 @@ else if(isset($_GET['uid'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&uid=".$_GET['uid']).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['vill']) && isset($_GET['id'])) {
@@ -104,7 +104,7 @@ else if(isset($_GET['vill']) && isset($_GET['id'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&id=".$_GET['id'])."&vill=".$_GET['vill'].'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}
 }
 else if(isset($_GET['t']) && isset($_GET['id'])) {
@@ -112,13 +112,13 @@ else if(isset($_GET['t']) && isset($_GET['id'])) {
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : "&id=".$_GET['id'])."&t=".$_GET['t'].'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}}else{
 		for($i=1;$i<=count($session->villages);++$i){echo'
 		<tr>
 			<td class="dot '.(($_SESSION['wid'] == $returnVillageArray[$i-1]['wref'] ) ? 'hl':'').'">●</td>
 			<td class="link"><a href="?newdid='.$returnVillageArray[$i-1]['wref'].(($id>=19) ? "&id=".$id : (!empty($_GET['id']) ? "&id=".$_GET['id'] : '')).'">'.$returnVillageArray[$i-1]['name'].'</a></td>
-			<td class="aligned_coords"><div class="cox">('.$returnVillageArray[$i-1]['x'].'</div><div class="pi">|</div><div class="coy">'.$returnVillageArray[$i-1]['y'].')</div></td></tr>';
+			<td class="aligned_coords">(<span class="coordX">'.$returnVillageArray[$i-1]['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$returnVillageArray[$i-1]['y'].'</span>)</td></tr>';
 	}}?>
 	</tbody>
 </table>

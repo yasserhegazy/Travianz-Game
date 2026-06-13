@@ -10,8 +10,9 @@
 ##  Copyright:     TravianX (c) 2010-2011. All rights reserved.                ##
 ##                                                                             ##
 #################################################################################
-	$loopsame = ($building->isCurrent($id) || $building->isLoop($id))?1:0;
-	$doublebuild = ($building->isCurrent($id) && $building->isLoop($id))?1:0;
+	$loopsame = count($database->getBuildingByField($village->wid, $id));
+	$doublebuild = 0;
+	$master = count($database->getMasterJobsByField($village->wid, $id));
 ?>
 
 <div id="build" class="gid40"><a href="#" onClick="return Popup(40,4);" class="build_logo">

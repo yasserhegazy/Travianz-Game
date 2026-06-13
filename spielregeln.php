@@ -47,7 +47,7 @@ AccessLogger::logRequest();
 	body.contentPage .rules { margin-left: 160px; margin-right: 120px; }
 </style>
 	<?php endif; ?>
-	<link rel="stylesheet" type="text/css" href="mobile.css?v=52" />
+	<link rel="stylesheet" type="text/css" href="mobile.css?v=47" />
 </head>
 <body class="webkit contentPage">
 <div class="wrapper">

@@ -72,6 +72,7 @@ $fh = fopen($myFile, 'w') or die("<br/><br/><br/>Can't open file: GameEngine\con
 		$text = preg_replace("'%ACTIVATE%'", (AUTH_EMAIL ? 'true' : 'false'), $text);
 		$text = preg_replace("'%MEDALINTERVAL%'", MEDALINTERVAL, $text);
 		$text = preg_replace("'%GREAT_WKS%'", (GREAT_WKS ? 'true' : 'false'), $text);
+		$text = preg_replace("'%GREAT_WHS%'", (defined('GREAT_WHS') && GREAT_WHS ? 'true' : 'false'), $text);
 		$text = preg_replace("'%TS_THRESHOLD%'", TS_THRESHOLD, $text);
 		$text = preg_replace("'%REG_OPEN%'", $REG_OPEN, $text);
 		$text = preg_replace("'%PEACE%'", PEACE, $text);

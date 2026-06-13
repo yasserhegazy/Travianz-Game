@@ -1630,6 +1630,7 @@ CREATE TABLE IF NOT EXISTS `%PREFIX%users` (
   `is_bcrypt` tinyint(1) NOT NULL DEFAULT '0',
   `crop_reduction` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `gold_protect` int(11) UNSIGNED NOT NULL DEFAULT '0',
+  `gold_protect_count` int(11) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `username` (`username`),
