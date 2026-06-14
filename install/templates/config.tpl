@@ -165,15 +165,15 @@ $dbPrefix = $_SESSION['install_random_prefix'];
         </tr>
         <tr>
         	<td><span class="f9 c6">Natars Spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_spawn_time" id="natars_spawn_time" value="260" size="3"></td>
+            <td width="140"><input type="text" name="natars_spawn_time" id="natars_spawn_time" value="0" size="3"></td>
         </tr>
         <tr>
         	<td><span class="f9 c6">WW spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_ww_spawn_time" id="natars_ww_spawn_time" value="260" size="3"></td>
+            <td width="140"><input type="text" name="natars_ww_spawn_time" id="natars_ww_spawn_time" value="0" size="3"></td>
         </tr>
         <tr>
         	<td><span class="f9 c6">WW building plan spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_ww_building_plan_spawn_time" id="natars_ww_building_plan_spawn_time" value="260" size="3"></td>           
+            <td width="140"><input type="text" name="natars_ww_building_plan_spawn_time" id="natars_ww_building_plan_spawn_time" value="0" size="3"></td>           
         </tr>      
         <tr>
             <td><span class="f9 c6">World size:</span></td>

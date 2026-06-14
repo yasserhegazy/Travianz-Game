@@ -121,7 +121,8 @@ define("NATARS_UNITS",%NATARS_UNITS%);
 // ***** Natars Spawn Time
 define("NATARS_SPAWN_TIME",%NATARS_SPAWN_TIME%); 
 define("NATARS_WW_SPAWN_TIME",%NATARS_WW_SPAWN_TIME%); 
-define("NATARS_WW_BUILDING_PLAN_SPAWN_TIME",%NATARS_WW_BUILDING_PLAN_SPAWN_TIME%); 
+define("NATARS_WW_BUILDING_PLAN_SPAWN_TIME",%NATARS_WW_BUILDING_PLAN_SPAWN_TIME%);
+define("NATARS_WW_BUILD_INTERVAL", (int) max(60, round(86400 / max(1, (int) SPEED)))); // seconds per WW level
 
 // ***** Nature troops regeneration time
 define("NATURE_REGTIME",%NATURE_REGTIME%); 
