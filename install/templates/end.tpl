@@ -37,7 +37,7 @@ All the files are placed. The database is created, so you can now start playing 
 
 <?php include("../GameEngine/config.php");
 $time = time();
-rename("../install/","../installed_".$time);
+@rename("../install/","../installed_".$time);
 touch('../var/installed');
 
 // Auto-apply post-install permissions
