@@ -63,7 +63,7 @@ if(file_exists($envPath)) {
     }
 }
 
-$dbHost = $envDefaults['DB_HOST'] ?? '127.0.0.1';
+$dbHost = $envDefaults['DB_HOST'] ?? 'db';
 $dbPort = $envDefaults['DB_PORT'] ?? '3306';
 $dbUser = $envDefaults['MARIADB_USER'] ?? ($envDefaults['MYSQL_USER'] ?? '');
 $dbPass = $envDefaults['MARIADB_PASSWORD'] ?? ($envDefaults['MYSQL_PASSWORD'] ?? '');
