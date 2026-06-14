@@ -165,15 +165,15 @@ $dbPrefix = $_SESSION['install_random_prefix'];
         </tr>
         <tr>
         	<td><span class="f9 c6">Natars Spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_spawn_time" id="natars_spawn_time" value="0" size="3"></td>
+            <td width="140"><input type="text" name="natars_spawn_time" id="natars_spawn_time" value="260" size="3"></td>
         </tr>
         <tr>
         	<td><span class="f9 c6">WW spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_ww_spawn_time" id="natars_ww_spawn_time" value="0" size="3"></td>
+            <td width="140"><input type="text" name="natars_ww_spawn_time" id="natars_ww_spawn_time" value="260" size="3"></td>
         </tr>
         <tr>
         	<td><span class="f9 c6">WW building plan spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_ww_building_plan_spawn_time" id="natars_ww_building_plan_spawn_time" value="0" size="3"></td>           
+            <td width="140"><input type="text" name="natars_ww_building_plan_spawn_time" id="natars_ww_building_plan_spawn_time" value="260" size="3"></td>           
         </tr>      
         <tr>
             <td><span class="f9 c6">World size:</span></td>
@@ -203,15 +203,15 @@ $dbPrefix = $_SESSION['install_random_prefix'];
         </tr>
         <tr>
             <td><span class="f9 c6">Server:</span></td>
-            <td><input name="server" type="text" id="homepage" value="http://<?php echo $_SERVER['HTTP_HOST']; ?>/travian/"></td>
+            <td><input name="server" type="text" id="homepage" value="http://<?php echo $_SERVER['HTTP_HOST']; ?>/"></td>
         </tr>
         <tr>
             <td><span class="f9 c6">Domain:</span></td>
-            <td><input name="domain" type="text" id="homepage" value="http://<?php echo $_SERVER['HTTP_HOST']; ?>/travian/"></td>
+            <td><input name="domain" type="text" id="homepage" value="http://<?php echo $_SERVER['HTTP_HOST']; ?>/"></td>
         </tr>
         <tr>
             <td><span class="f9 c6">Homepage:</span></td>
-            <td><input name="homepage" type="text" id="homepage" value="http://<?php echo $_SERVER['HTTP_HOST']; ?>/travian/"></td>
+            <td><input name="homepage" type="text" id="homepage" value="http://<?php echo $_SERVER['HTTP_HOST']; ?>/"></td>
         </tr>
         <tr>
             <td><span class="f9 c6">Language:</span></td>
