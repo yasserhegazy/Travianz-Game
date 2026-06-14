@@ -16,10 +16,11 @@ echo "[3/4] Restoring install folder..."
 docker compose exec -u root web bash -c '
   INSTALLED=$(ls /var/www/html/ | grep "^installed_" | head -1)
   if [ -n "$INSTALLED" ]; then
+    rm -rf /var/www/html/install
     mv /var/www/html/$INSTALLED /var/www/html/install
     echo "  restored $INSTALLED -> install/"
   elif [ -d /var/www/html/install ]; then
-    echo "  install/ already present, nothing to restore"
+    echo "  install/ already present (nothing to restore)"
   else
     echo "  ERROR: no install/ or installed_* folder found"
     exit 1
