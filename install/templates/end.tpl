@@ -35,10 +35,25 @@ All the files are placed. The database is created, so you can now start playing 
     <li>Protect folder /Admin with password protect directory</li>
 </ul>
 
-<?php include("../GameEngine/config.php"); 
+<?php include("../GameEngine/config.php");
 $time = time();
 rename("../install/","../installed_".$time);
 touch('../var/installed');
+
+// Auto-apply post-install permissions
+function chmodRecursive($path, $mode) {
+    @chmod($path, $mode);
+    if (is_dir($path)) {
+        foreach (scandir($path) as $item) {
+            if ($item === '.' || $item === '..') continue;
+            chmodRecursive($path . '/' . $item, $mode);
+        }
+    }
+}
+chmodRecursive('../GameEngine', 0755);
+chmodRecursive('../GameEngine/Prevention', 0777);
+chmodRecursive('../GameEngine/Notes', 0777);
+chmodRecursive('../var/log', 0777);
 ?>
 <p>
 <center><font size="4"><a href="<?php echo HOMEPAGE; ?>">> My TravianZ homepage <</font></a></center>
