@@ -1371,7 +1371,7 @@ public function getVillageOwner($vid) {
 	 * @return array Return the generated villages 
 	 */ 
 	
-	function generateBase($sector, $mode = 0, $numberOfVillages = 1) {
+	function generateBase($sector, $mode = 0, $numberOfVillages = 1, $alreadySelected = []) {
 	    list($sector, $mode, $numberOfVillages) = $this->escape_input((int) $sector, (int) $mode, (int)$numberOfVillages);
 
         // don't let SQL time out when 30-500 seconds (depending on php.ini) is not enough
@@ -1379,10 +1379,10 @@ public function getVillageOwner($vid) {
         $num_rows = $count = 0;
         $villages = [];
         $time = time();
-        
-        // Track cells already picked in this run so repeated passes never select the same
-        // wdata id twice (occupied is only flagged later, in setFieldTaken).
-        $selectedIds = [];
+
+        // Track cells already picked — seeded with cross-call picks from generateVillages so
+        // cells in overlapping radius rings (e.g. mode=4 ∩ mode=2) are never selected twice.
+        $selectedIds = array_map('intval', $alreadySelected);
         while ($numberOfVillages > 0) {
             switch($mode){
                 case 0:
@@ -1457,6 +1457,7 @@ public function getVillageOwner($vid) {
 
         }
 
+        $wids = [];
         foreach($villages as $village) $wids[] = $village['id'];
 
         return $num_rows == 1 ? $wids[0] : $wids;
@@ -1491,17 +1492,21 @@ public function getVillageOwner($vid) {
 	    list($villageArrays, $uid, $username, $troopsArray, $buildingsArray) = $this->escape_input($villageArrays, (int) $uid, $username, $troopsArray, $buildingsArray);
 		
 	    $wids = $takenWids = $countedWids = $generatedWids = $i = [];
-	    
+
+	    // Accumulate all wids picked across every generateBase call so that overlapping radius
+	    // rings (e.g. mode=4 5-20% ∩ mode=2 10-30%) never yield the same cell twice.
+	    $globallyPickedWids = [];
+
 	    //Count each kid in its own array, to check how many villages must be created
 	    foreach($villageArrays as $village){
 	        if($village['wid'] == 0) $countedWids[$village['mode']][$village['kid']] = ($countedWids[$village['mode']][$village['kid']] ?? 0) + 1;
 	    }
-	    
+
 	    //Generate the number of desired village for each kid
 	    //and merge them with the more general "wids" array
 	    foreach($countedWids as $mode => $totalCount){
 	        foreach($totalCount as $sector => $count){
-	            $generatedWids = $this->generateBase($sector, $mode, $count);
+	            $generatedWids = $this->generateBase($sector, $mode, $count, $globallyPickedWids);
 	            $generatedWids = !is_array($generatedWids) ? [$generatedWids] : $generatedWids;
 	            // If the map has no free cells in this radius ring, abort entirely rather than
 	            // calling addVillage(null) which would insert corrupt wref=0 rows into vdata.
@@ -1509,6 +1514,7 @@ public function getVillageOwner($vid) {
 	                error_log("generateVillages: no free cells for mode=$mode sector=$sector need=$count uid=$uid — aborting");
 	                return [];
 	            }
+	            $globallyPickedWids = array_merge($globallyPickedWids, $generatedWids);
 	            $wids[$mode] = array_merge($wids[$mode] ?? [], $generatedWids);
 	            if(!isset($i[$mode])) $i[$mode] = 0;
 	        }
