@@ -214,8 +214,8 @@ if(mysqli_num_rows($natarsExists) > 0) {
         return true;
     }
 
-    $possibleWids = $database->getVilWrefs(self::NATARS_CAPITAL_COORDINATES);
-    $wid = $database->getFreeVillage($possibleWids);
+    // Clean up any orphaned/failed artifact villages first
+    $this->cleanOrphanedVillages();
 
     $this->addArtifactVillages(self::NATARS_ARTIFACTS);
     return true;
@@ -225,6 +225,9 @@ if(mysqli_num_rows($natarsExists) > 0) {
         //Register the Natars account, the Natars' password is the same as the MH's one
         $password = $database->getUserField(5, 'password', 0);
         $database->register(TRIBE5, $password, self::NATARS_EMAIL, self::NATARS_TRIBE, null, self::NATARS_UID, self::NATARS_DESC);
+        
+        // Clean up any orphaned/failed artifact villages just in case
+        $this->cleanOrphanedVillages();
         
         //Convert from coordinates to village IDs
         $possibleWids = $database->getVilWrefs(self::NATARS_CAPITAL_COORDINATES);
@@ -355,7 +358,10 @@ if(mysqli_num_rows($natarsExists) > 0) {
     
     public function createWWVillages($numberOfVillages = self::NATARS_BASE_WW_VILLAGES, $uid = self::NATARS_UID, $addTroops = true){
         global $database;
-        
+
+        // spawnWWVillages() only calls this when areWWVillagesSpawned()=false,
+        // so WW villages cannot already exist here. Never delete before creating —
+        // if generation fails after a delete the guard returns false forever.
         $villageArrays = $troopArrays = $buildingArrays = $wids = [];
         for($i = 1; $i <= $numberOfVillages; $i++){
             $villageArrays[] = ['wid' => 0, 'mode' => 5, 'type' => 3, 'kid' => ($i == $numberOfVillages ? 5 : ($i % 4) + 1), 'capital' => 0, 'pop' => 233, 'name' => WWVILLAGE, 'natar' => 1];
@@ -375,6 +381,8 @@ if(mysqli_num_rows($natarsExists) > 0) {
      */
     
     public function createWWBuildingPlans(){
+        // Clean up any orphaned/failed building plan villages first
+        $this->cleanOrphanedVillages();
         
         //Add the artifacts and villages
         $this->addArtifactVillages(self::NATARS_WW_BUILDING_PLANS);
@@ -558,6 +566,23 @@ if(mysqli_num_rows($natarsExists) > 0) {
         return ["requiredLevel" => $requiredLevel, "active" => $active,
                 "bonus" => $bonus, "effectInfluence" => $effectInfluence,
                 "nextEffect" => $nextEffect];
+    }
+
+    /**
+     * Cleans up orphaned Natars villages that have no artifacts associated with them
+     */
+    private function cleanOrphanedVillages() {
+        global $database;
+        $q = "SELECT wref FROM " . TB_PREFIX . "vdata 
+              WHERE owner = " . self::NATARS_UID . " 
+              AND capital = 0 
+              AND natar = 0 
+              AND wref NOT IN (SELECT vref FROM " . TB_PREFIX . "artefacts)";
+        $res = $database->query_return($q);
+        if (!empty($res)) {
+            $vids = array_map(function($row) { return $row['wref']; }, $res);
+            $database->DelVillage($vids);
+        }
     }
 }
 

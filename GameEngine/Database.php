@@ -1494,7 +1494,7 @@ public function getVillageOwner($vid) {
 	    
 	    //Count each kid in its own array, to check how many villages must be created
 	    foreach($villageArrays as $village){
-	        if($village['wid'] == 0) $countedWids[$village['mode']][$village['kid']]++;
+	        if($village['wid'] == 0) $countedWids[$village['mode']][$village['kid']] = ($countedWids[$village['mode']][$village['kid']] ?? 0) + 1;
 	    }
 	    
 	    //Generate the number of desired village for each kid
@@ -1502,16 +1502,23 @@ public function getVillageOwner($vid) {
 	    foreach($countedWids as $mode => $totalCount){
 	        foreach($totalCount as $sector => $count){
 	            $generatedWids = $this->generateBase($sector, $mode, $count);
-	            $wids[$mode] = array_merge((array)$wids[$mode], !is_array($generatedWids) ? [$generatedWids] : $generatedWids);
-	            if(empty($i[$mode])) $i[$mode] = 0;
+	            $generatedWids = !is_array($generatedWids) ? [$generatedWids] : $generatedWids;
+	            // If the map has no free cells in this radius ring, abort entirely rather than
+	            // calling addVillage(null) which would insert corrupt wref=0 rows into vdata.
+	            if(empty($generatedWids) || (count($generatedWids) === 1 && $generatedWids[0] === null)) {
+	                error_log("generateVillages: no free cells for mode=$mode sector=$sector need=$count uid=$uid — aborting");
+	                return [];
+	            }
+	            $wids[$mode] = array_merge($wids[$mode] ?? [], $generatedWids);
+	            if(!isset($i[$mode])) $i[$mode] = 0;
 	        }
 	    }
-	    
+
 	    //Create the villages
 		foreach($villageArrays as $village){
-		    
+
 		    //Check if the village wid isn't already set and assing one among the generated ones
-		    if($village['wid'] == 0) $village['wid'] = $wids[$village['mode']][$i[$village['mode']]++];
+		    if($village['wid'] == 0) $village['wid'] = $wids[$village['mode']][$i[$village['mode']]++] ?? null;
 		    
 		    //Merge the wids into an unique array
 		    $takenWids[] = $village['wid'];
@@ -4274,7 +4281,24 @@ $maxLevel *= $multiplier;
         $times = [];
         $endtimes = [];
         
-        foreach($getmovement as $movedata) {
+        $flatMovements = [];
+        if (is_array($getmovement)) {
+            foreach ($getmovement as $key => $val) {
+                if (is_array($val)) {
+                    if (isset($val['moveid'])) {
+                        $flatMovements[] = $val;
+                    } else {
+                        foreach ($val as $m) {
+                            if (is_array($m) && isset($m['moveid'])) {
+                                $flatMovements[] = $m;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        foreach($flatMovements as $movedata) {
             $time2 = $time - $movedata['starttime'];
             $moveIDs[] = $movedata['moveid'];
             $types[] = 4;
@@ -4285,8 +4309,10 @@ $maxLevel *= $multiplier;
             $endtimes[] = $time+$time2;
         }
         
-        $this->setMovementProc(implode(', ', $moveIDs));
-        $this->addMovement($types, $froms, $tos, $refs, $times, $endtimes);
+        if (!empty($moveIDs)) {
+            $this->setMovementProc(implode(', ', $moveIDs));
+            $this->addMovement($types, $froms, $tos, $refs, $times, $endtimes);
+        }
         
         $q = "DELETE FROM ".TB_PREFIX."enforcement WHERE `from` IN($wrefs)";
         $this->query($q);
@@ -7807,7 +7833,15 @@ if (count($jokers) > 0)
 	    list($wids, $artifactsArray) = $this->escape_input($wids, $artifactsArray);
 
 	    if(!is_array($wids)) $wids = [$wids];
-	    
+
+	    // Guard against empty or mismatched wids from a failed generateVillages call.
+	    // Inserting with missing wids would create corrupt artefact rows (vref=0/null)
+	    // that permanently satisfy areArtifactsSpawned() with no real villages behind them.
+	    if(empty($wids) || count($wids) < count($artifactsArray)) {
+	        error_log("addArtefacts: wids count (".count($wids).") < artifacts count (".count($artifactsArray).") — skipping insert");
+	        return false;
+	    }
+
 	    $time = time();
 	    
 	    foreach($artifactsArray as $index => $artifact){
