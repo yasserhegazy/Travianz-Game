@@ -354,6 +354,11 @@ if($targetVid > 0) {
     }
 }
 
+    // The immune Natar Wonder village (معجزة التتار) cannot be targeted by any player troops.
+    if(!$isOasisTarget && $database->isProtectedNatarWonder($targetVid)) {
+        $form->addError("error", "لا يمكن مهاجمة معجزة التتار، فهي محمية تماماً ولا يمكن احتلالها.");
+    }
+
     $senderProtected = $database->hasBeginnerProtection($village->wid);
     $targetProtected = ($targetOwner > 0) ? $database->hasUserBeginnerProtection($targetOwner) : false;
 
@@ -928,6 +933,14 @@ if($targetOwner > 0 && $targetOwner != (int)$session->uid) {
 		$blockedByTargetProtection++;
         continue;
     }
+}
+
+// قرية معجزة التتار محمية تماماً ولا يمكن استهدافها بقوائم الإغارة
+if(!$isOasisTarget && $database->isProtectedNatarWonder($wref)) {
+    $protectedSlots[] = (int)$sid;
+    $blockedCount++;
+    $blockedByTargetProtection++;
+    continue;
 }
 			for($i = 1; $i <= 6; $i++) ${'t'.$i} = $raidList['t'.$i];
 

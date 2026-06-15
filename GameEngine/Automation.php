@@ -422,6 +422,20 @@ class Automation {
             // store village ID for later for statistical updates
             $villageData = $database->getVillageFields($indi['wid'],'owner, maxcrop, maxstore, starv, pop');
             $villageOwner = $villageData['owner'];
+
+            // Two-tier blueprint enforcement: if the owner lost the required construction
+            // plan mid-upgrade, block this WW level-up (levels 1-50 need a small plan / type 15,
+            // levels 51-100 need a large plan / type 16 and NO small plan). The job is left
+            // queued so it resumes automatically once the plan is reacquired. Natars build
+            // their own Wonder without plans and are never blocked.
+            if ($indi['type'] == 40 && (int) $villageOwner != Artifacts::NATARS_UID) {
+                $targetLevel = (int) $indi['level'];
+                $hasSmall = $database->getWWConstructionPlans($villageOwner, 0, 15);
+                $hasLarge = $database->getWWConstructionPlans($villageOwner, 0, 16);
+                $planOk = ($targetLevel <= 50) ? $hasSmall : ($hasLarge && !$hasSmall);
+                if (!$planOk) continue;
+            }
+
             $villagesAffected[] = (int) $indi['wid'];
             $fieldsToSet = [];
             
@@ -2021,7 +2035,23 @@ $i != 34 &&
                             //check for last village or capital
                             if($user_cps >= $need_cps){
                                 if(count($varray) > 1 && $to['capital'] != 1 && $villexp < $canconquer){
-                                    if($to['owner'] != 3 || $to['name'] != 'WW Buildingplan'){
+                                    // Natar construction-plan villages can't be chiefed (the plan is
+                                    // claimed by a hero). Detected via the held plan artefact, not a
+                                    // localized village name.
+                                    if($to['owner'] != 3 || !$database->isNatarPlanVillage($data['to'])){
+                                        // The immune Natar Wonder (معجزة التتار) can never be conquered.
+                                        if($database->isProtectedNatarWonder($data['to'])){
+                                            $nochiefing = 1;
+                                            $info_chief = "".$chief_pic.",معجزة التتار محمية تماماً ولا يمكن احتلالها.";
+                                        }
+
+                                        // One Wonder village per player: block chiefing a WW village
+                                        // if the attacker already owns one.
+                                        if(!isset($nochiefing) && $to['natar'] == 1 && $database->countOwnedWWVillages($from['owner']) >= 1){
+                                            $nochiefing = 1;
+                                            $info_chief = "".$chief_pic.",لا يمكنك امتلاك أكثر من قرية معجزة واحدة.";
+                                        }
+
                                         // check for standing Palace or Residence
                                         // note: at this point, we can use cache, since we've cleared it above
                                         if ($database->getFieldLevelInVillage($data['to'], '25, 26')) {
@@ -3023,17 +3053,36 @@ $i != 34 &&
         return;
     }
 
-    // جلب إحدى قرى المعجزات التي يملكها التتار حالياً (نفس القرية دائماً للتركيز عليها)
-    $q = "SELECT wref FROM " . TB_PREFIX . "vdata 
-          WHERE owner = " . Artifacts::NATARS_UID . " 
-          AND natar = 1 
-          ORDER BY wref ASC 
+    // جلب قرية معجزة التتار المحمية فقط (المعجزة التي يبنيها التتار تلقائياً حتى المستوى 100)
+    // نحددها بالاسم NATARWONDER حتى لا تتأثر بعد احتلال اللاعبين لباقي قرى المعجزات
+    $q = "SELECT wref FROM " . TB_PREFIX . "vdata
+          WHERE owner = " . Artifacts::NATARS_UID . "
+          AND natar = 1
+          AND name = '" . mysqli_real_escape_string($database->dblink, NATARWONDER) . "'
+          ORDER BY wref ASC
           LIMIT 1";
 
     $result = $database->query_return($q);
 
+    // التوافق مع الخوادم القديمة: إذا لم توجد قرية باسم معجزة التتار (تم إطلاق الخادم قبل هذه الميزة)
+    // نرقّي قرية معجزة واحدة لا تزال مملوكة للتتار إلى الحالة المحمية، مرة واحدة فقط.
     if(empty($result)) {
-        return;
+        $fallback = "SELECT wref FROM " . TB_PREFIX . "vdata
+                     WHERE owner = " . Artifacts::NATARS_UID . "
+                     AND natar = 1
+                     ORDER BY wref ASC
+                     LIMIT 1";
+        $fb = $database->query_return($fallback);
+
+        if(empty($fb)) {
+            return;
+        }
+
+        $promoteWref = (int) $fb[0]['wref'];
+        $database->query("UPDATE " . TB_PREFIX . "vdata
+                          SET name = '" . mysqli_real_escape_string($database->dblink, NATARWONDER) . "'
+                          WHERE wref = " . $promoteWref);
+        $result = [['wref' => $promoteWref]];
     }
 
     $wref = $result[0]['wref'];

@@ -9,7 +9,7 @@ $oasislink = '';
 ?>
 <h1 class="vilViewTitle"><?php
 if($basearray['fieldtype'] != 0){
-    echo !$basearray['occupied'] ? ABANDVALLEY : $basearray['name'];
+    echo !$basearray['occupied'] ? ABANDVALLEY : $database->villageDisplayName($basearray['id'], $basearray['name']);
 }else{
     echo ((int)$oasis['owner'] > 3) ? OCCUOASIS : UNOCCUOASIS;
 }
@@ -19,7 +19,7 @@ if($basearray['fieldtype'] != 0){
 </span>
 </h1>
 <?php if($basearray['occupied'] && $basearray['capital']) { echo "<div id=\"dmain\">" . (defined('LANG') && LANG === 'ar' ? '(العاصمة)' : '(capital)') . "</div>"; }
-if($uinfo && $uinfo['owner'] == 3 && $uinfo['name'] == PLANVILLAGE){
+if($uinfo && $uinfo['owner'] == 3 && ($uinfo['name'] == PLANVILLAGE || $uinfo['name'] == PLANVILLAGE_LARGE)){
 ?>
 <img src="img/x.gif" id="detailed_map" class="f99" alt="<?php echo PLANVILLAGE;?>" />
 <?php }else{ ?>

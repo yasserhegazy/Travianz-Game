@@ -61,15 +61,16 @@ class Building {
                 }
             }
 
-            //Get our WW construction plans
-            $userHasWWConstructionPlans = $database->getWWConstructionPlans($session->uid);
-            
-            //Get ally WW construction plans
-            $allyHasWWConstructionPlans = $session->alliance > 0 ? $database->getWWConstructionPlans($session->uid, $session->alliance) : false;
-            
+            //Two-tier blueprint system:
+            // - Levels 1-50  require a SMALL construction plan (type 15)
+            // - Levels 51-100 require a LARGE construction plan (type 16) AND the player
+            //   must NOT still hold a small plan (the blueprint swap requirement)
+            $userHasSmallPlan = $database->getWWConstructionPlans($session->uid, 0, 15);
+            $userHasLargePlan = $database->getWWConstructionPlans($session->uid, 0, 16);
+
             //Check if we should allow building the WW this high
-            if($wwHighestLevelFound < 50) $cached = $userHasWWConstructionPlans;
-            else $cached = $userHasWWConstructionPlans && $allyHasWWConstructionPlans;
+            if($wwHighestLevelFound < 50) $cached = $userHasSmallPlan;
+            else $cached = $userHasLargePlan && !$userHasSmallPlan;
         }
         
         return $cached;

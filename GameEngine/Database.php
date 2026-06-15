@@ -7858,23 +7858,23 @@ if (count($jokers) > 0)
 		return mysqli_query($this->dblink, $q);
 	}
 
-	function getWWConstructionPlans($uid, $alliance = 0){
-	    list($uid, $alliance) = $this->escape_input((int) $uid, $alliance);
-	    
+	function getWWConstructionPlans($uid, $alliance = 0, $planType = 15){
+	    list($uid, $alliance, $planType) = $this->escape_input((int) $uid, $alliance, (int) $planType);
+
 	    if(!$alliance){
 	        $q = "SELECT
 			        Count(*) as Total
               FROM
                     ".TB_PREFIX."artefacts
               WHERE
-                    owner = ".$uid." AND type = 15 AND active = 1 AND del = 0";
+                    owner = ".$uid." AND type = ".$planType." AND active = 1 AND del = 0";
 	    }else{
 	        $q = "SELECT
 			        Count(*) as Total
               FROM
                     ".TB_PREFIX."artefacts AS artefacts
 			  INNER JOIN ".TB_PREFIX."users AS users
-					ON users.id != ".$uid." AND users.alliance = ".$alliance." AND artefacts.owner = users.id AND artefacts.type = 15
+					ON users.id != ".$uid." AND users.alliance = ".$alliance." AND artefacts.owner = users.id AND artefacts.type = ".$planType."
 		      WHERE
 					users.id > 4 AND artefacts.active = 1 AND artefacts.del = 0";
 	    }
@@ -7882,7 +7882,114 @@ if (count($jokers) > 0)
 	    $result = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
 	    return $result['Total'] > 0;
 	}
-	
+
+	/**
+	 * Returns true if the given village is the single, immune Natar Wonder
+	 * village (معجزة التتار). It is identified by being owned by the Natars,
+	 * flagged as a WW village (natar=1) and carrying the NATARWONDER name.
+	 * This village can never be attacked or conquered by players.
+	 *
+	 * @param int $wref The village reference
+	 * @return bool
+	 */
+	function isProtectedNatarWonder($wref){
+	    list($wref) = $this->escape_input((int) $wref);
+
+	    $q = "SELECT 1 FROM ".TB_PREFIX."vdata
+	          WHERE wref = ".$wref."
+	            AND owner = ".Artifacts::NATARS_UID."
+	            AND natar = 1
+	            AND name = '".mysqli_real_escape_string($this->dblink, NATARWONDER)."'
+	          LIMIT 1";
+
+	    return mysqli_num_rows(mysqli_query($this->dblink, $q)) > 0;
+	}
+
+	/**
+	 * Returns true if the village is an (unclaimed) Natar WW construction-plan
+	 * village — i.e. it still holds a small (type 15) or large (type 16) plan
+	 * artefact owned by the Natars. Such villages must not be chiefed; the plan
+	 * is meant to be taken by a hero. Identified by the artefact, not by a
+	 * localized village name, so it works in every language.
+	 *
+	 * @param int $wref The village reference
+	 * @return bool
+	 */
+	function isNatarPlanVillage($wref){
+	    list($wref) = $this->escape_input((int) $wref);
+
+	    $q = "SELECT 1 FROM ".TB_PREFIX."artefacts
+	          WHERE vref = ".$wref."
+	            AND owner = ".Artifacts::NATARS_UID."
+	            AND type IN (15, 16)
+	            AND del = 0
+	          LIMIT 1";
+
+	    return mysqli_num_rows(mysqli_query($this->dblink, $q)) > 0;
+	}
+
+	/**
+	 * Counts how many WW villages (natar=1) a player currently owns.
+	 * Used to enforce the one-WW-village-per-player limit.
+	 *
+	 * @param int $uid The user id
+	 * @return int
+	 */
+	function countOwnedWWVillages($uid){
+	    list($uid) = $this->escape_input((int) $uid);
+
+	    $q = "SELECT Count(*) as Total FROM ".TB_PREFIX."vdata WHERE owner = ".$uid." AND natar = 1";
+	    $result = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
+
+	    return (int) $result['Total'];
+	}
+
+	/**
+	 * Display-only village name. If the village currently holds a WW construction
+	 * plan (small = type 15 / large = type 16) its shown name is overridden at
+	 * runtime to indicate the blueprint tier. Nothing is persisted — vdata.name is
+	 * left untouched, so the player's real village name is preserved.
+	 *
+	 * @param int $wref The village reference
+	 * @param string|null $rawName Already-known vdata.name (avoids a lookup); fetched if null
+	 * @return string
+	 */
+	function villageDisplayName($wref, $rawName = null){
+	    list($wref) = $this->escape_input((int) $wref);
+	    if ($rawName === null) $rawName = $this->getVillageField($wref, "name");
+
+	    $q = "SELECT type FROM ".TB_PREFIX."artefacts
+	          WHERE vref = ".$wref." AND type IN (15, 16) AND del = 0 LIMIT 1";
+	    $row = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
+
+	    if (!empty($row)) return ((int) $row['type'] === 16) ? PLANVILLAGE_LARGE : PLANVILLAGE;
+
+	    return $rawName;
+	}
+
+	/**
+	 * Batch variant of villageDisplayName: given a list of village refs, returns a
+	 * map [wref => plan type (15|16)] for those that currently hold a WW construction
+	 * plan. Lets callers resolve blueprint display names for many villages in a single
+	 * query (avoids an N+1 in the village switcher rendered on every page).
+	 *
+	 * @param int[] $wrefs
+	 * @return array<int,int> wref => plan type
+	 */
+	function getPlanTypesByVillages($wrefs){
+	    $ids = array_filter(array_map('intval', (array) $wrefs));
+	    if (empty($ids)) return [];
+
+	    $q = "SELECT vref, type FROM ".TB_PREFIX."artefacts
+	          WHERE vref IN (".implode(',', $ids).") AND type IN (15, 16) AND del = 0";
+	    $res = mysqli_query($this->dblink, $q);
+
+	    $map = [];
+	    while ($row = mysqli_fetch_assoc($res)) $map[(int) $row['vref']] = (int) $row['type'];
+
+	    return $map;
+	}
+
     // no need to cache this method
 	function getOwnArtefactInfo($vref, $use_cache = true) {
 	    // load the data - type is irrelevant, since the method caches all data
@@ -8115,7 +8222,7 @@ if (count($jokers) > 0)
               SUM(IF(size = '1', 1, 0)) small,
               SUM(IF(size = '2', 1, 0)) great,
               SUM(IF(size = '3', 1, 0)) `unique`
-              FROM " . TB_PREFIX . "artefacts WHERE owner = ".(int) $uid." AND type != 15".($mode ? " AND active = 1 AND del = 0" : "");
+              FROM " . TB_PREFIX . "artefacts WHERE owner = ".(int) $uid." AND type NOT IN (15, 16)".($mode ? " AND active = 1 AND del = 0" : "");
 	    $result = mysqli_query($this->dblink, $q);
 	    return $this->mysqli_fetch_all($result)[0];
 	}
@@ -8161,15 +8268,15 @@ if (count($jokers) > 0)
         $uid = $this->getVillageField($from, "owner");
         $vuid = $this->getVillageField($vref, "owner");
 
-        // Building plans are separate from regular artifacts — check independently
-        if ($type == 15) {
-            $plans = $this->getWWConstructionPlans($uid);
-            if ((int)($plans[0]['Total'] ?? 0) >= 1 && $uid != $vuid) {
+        // Building plans (small=15, large=16) are separate from regular artifacts and
+        // are limited per-tier: a player may hold at most one plan of each type.
+        if ($type == 15 || $type == 16) {
+            if ($this->getWWConstructionPlans($uid, 0, $type) && $uid != $vuid) {
                 return "Max num. of building plans. Your hero could not claim the artefact";
             }
         }
 
-        $artifact = $this->getOwnArtifactsSum($uid); // type=15 already excluded
+        $artifact = $this->getOwnArtifactsSum($uid); // type=15 and type=16 already excluded
 
         if ($artifact['totals'] < 3 || $uid == $vuid) {
             $DefenderFields = $this->getResourceLevel( $vref );

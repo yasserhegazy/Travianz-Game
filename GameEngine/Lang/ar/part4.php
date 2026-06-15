@@ -302,14 +302,18 @@ define('FOOL_LARGEVILLAGE', 'تحف الجوكر');
 define('FOOL_UNIQUE', 'تحفة الجوكر النادرة');
 define('FOOL_UNIQUEVILLAGE', 'تحف الجوكر');
 define('WWVILLAGE', 'قرية المعجزة');
+define('NATARWONDER', 'معجزة التتار');
 define('ARTEFACT', '<div style="text-align:center;line-height:1.8;font-size:16px;"><h2 style="color:#8B0000;margin:10px 0;">ظهور التحف القديمة</h2><p style="margin:8px 0;">انتشرت الشائعات في أنحاء العالم عن ظهور تحف أسطورية تعود لحضارات قديمة...</p><p style="margin:8px 0;">يقال إن هذه التحف تمنح قوى خارقة لحاملها، بينما تحمل بعضها لعنة غامضة قد تقلب موازين المعارك بالكامل.</p><p style="margin:8px 0;">بدأت قبائل التتار بحراسة هذه الكنوز في قرى محصنة بشدة، ولن يتمكن من السيطرة عليها إلا أقوى المحاربين وأكثرهم تضحية.</p><p style="color:#8B0000;font-weight:bold;margin:14px 0 4px;">استعدوا للحرب... عصر التحف بدأ.</p></div>');
 
 //WW Village Release Message
 define('WWVILLAGEMSG', '<h1><b>قرى معجزات العالم</b></h1>مضت أيام لا تحصى...');
 define('WILL_SPAWN_IN', 'ستظهر في');
-define('PLAN', 'مخطط بناء قديم');
-define('PLANVILLAGE', 'مخطط بناء المعجزة');
-define('PLAN_DESC', 'بهذا المخطط تستطيع بناء المعجزة للمستوى 50، لاستكمالها يحتاج تحالفك لمخططين.');
+define('PLAN', 'مخطط بناء معجزة صغير');
+define('PLANVILLAGE', 'قرية مخطط بناء صغير');
+define('PLAN_DESC', 'بهذا المخطط الصغير تستطيع بناء معجزة العالم من المستوى 1 إلى 50. لاستكمال البناء (المستويات 51-100) يجب أن تتخلى عن المخطط الصغير وتحتل مخطط بناء كبير.');
+define('PLAN_LARGE', 'مخطط بناء معجزة كبير');
+define('PLANVILLAGE_LARGE', 'قرية مخطط بناء كبير');
+define('PLAN_LARGE_DESC', 'بهذا المخطط الكبير تستطيع بناء معجزة العالم من المستوى 51 إلى 100. لا يمكنك امتلاك مخطط بناء صغير في نفس الوقت.');
 define('PLAN_INFO', '<h1><b>مخططات بناء معجزة العالم</b></h1>الكثير في الانتظار...');
 
 //Admin setting - Admin/Templates/config.tpl & editServerSet.tpl

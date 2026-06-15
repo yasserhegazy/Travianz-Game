@@ -19,6 +19,17 @@ if(count($session->villages) > 1){
    <thead><tr><td colspan="3"><a href="dorf3.php" accesskey="9"><?php echo VILLAGES; ?>:</a></td></tr></thead>
 	<tbody><?php
 		$returnVillageArray = $database->getArrayMemberVillage($session->uid);
+		// Display-only: a village holding a WW construction plan shows the blueprint
+		// tier name in the switcher (vdata.name is never modified). Resolved in a single
+		// batched query to avoid an N+1 on every page load.
+		$rvPlanTypes = $database->getPlanTypesByVillages(array_column($returnVillageArray, 'wref'));
+		if(!empty($rvPlanTypes)){
+			foreach($returnVillageArray as $rvKey => $rvVil){
+				if(isset($rvPlanTypes[(int)$rvVil['wref']])){
+					$returnVillageArray[$rvKey]['name'] = ($rvPlanTypes[(int)$rvVil['wref']] === 16) ? PLANVILLAGE_LARGE : PLANVILLAGE;
+				}
+			}
+		}
 if(isset($_GET['w'])) {
 		for($i=1;$i<=count($session->villages);++$i){echo'
 		<tr>

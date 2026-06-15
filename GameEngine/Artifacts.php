@@ -108,7 +108,8 @@ class Artifacts
      * @var array WW building plans Natars' artifacts
      */
     
-    NATARS_WW_BUILDING_PLANS =  [PLAN_DESC => [["type" => 15, "size" => 1, "name" => PLAN, "vname" => PLANVILLAGE, "effect" => "", "quantity" => 12, "img" => 1]]],
+    NATARS_WW_BUILDING_PLANS =  [PLAN_DESC => [["type" => 15, "size" => 1, "name" => PLAN, "vname" => PLANVILLAGE, "effect" => "", "quantity" => 6, "img" => 1]],
+                                 PLAN_LARGE_DESC => [["type" => 16, "size" => 1, "name" => PLAN_LARGE, "vname" => PLANVILLAGE_LARGE, "effect" => "", "quantity" => 6, "img" => 1]]],
                                     
     /**
      * @var array Natars' normal artifacts buildings
@@ -364,7 +365,10 @@ if(mysqli_num_rows($natarsExists) > 0) {
         // if generation fails after a delete the guard returns false forever.
         $villageArrays = $troopArrays = $buildingArrays = $wids = [];
         for($i = 1; $i <= $numberOfVillages; $i++){
-            $villageArrays[] = ['wid' => 0, 'mode' => 5, 'type' => 3, 'kid' => ($i == $numberOfVillages ? 5 : ($i % 4) + 1), 'capital' => 0, 'pop' => 233, 'name' => WWVILLAGE, 'natar' => 1];
+            // The last spawned village is the protected, immune Natar Wonder (معجزة التتار),
+            // which the Natars auto-build 0->100. The other 12 are conquerable player WW villages.
+            $villageName = ($i == $numberOfVillages) ? NATARWONDER : WWVILLAGE;
+            $villageArrays[] = ['wid' => 0, 'mode' => 5, 'type' => 3, 'kid' => ($i == $numberOfVillages ? 5 : ($i % 4) + 1), 'capital' => 0, 'pop' => 233, 'name' => $villageName, 'natar' => 1];
             if($addTroops) $troopArrays[1][] = array_values(($this->natarsWWVillagesUnits)());
             $buildingArrays[1][] = array_values(self::NATARS_WW_VILLAGES_BUILDINGS);
         }
@@ -416,6 +420,14 @@ if(mysqli_num_rows($natarsExists) > 0) {
                 
                 //Activate activable artifacts
                 foreach($inactiveArtifacts as $artifact){
+                    //WW construction plans (small=15 / large=16) are not regular artifacts:
+                    //they never consume an artifact slot, so always activate them. Without
+                    //this, a player already holding 3 active artifacts could never activate
+                    //a claimed plan and would be unable to build the World Wonder.
+                    if($artifact['type'] == 15 || $artifact['type'] == 16){
+                        $database->activateArtifact($artifact['id']);
+                        continue;
+                    }
                     if($ownArtifacts['totals'] < 3){
                         if($artifact['size'] == 1){ //Village effect
                             $database->activateArtifact($artifact['id']);

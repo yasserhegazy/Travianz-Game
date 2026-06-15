@@ -1454,7 +1454,8 @@ define('FOOL_SMALL', 'Artefact of the slight fool');
 define('FOOL_SMALLVILLAGE', 'Pendant of Mischief');
 define('FOOL_UNIQUE', 'Artefact of the unique fool');
 define('FOOL_UNIQUEVILLAGE', 'Forbidden Manuscript');
-define('WWVILLAGE', 'WW village');
+define('WWVILLAGE', 'Wonder of the World village');
+define('NATARWONDER', 'Natar Wonder');
 define('ARTEFACT', '<h1><b>Natars Artefacts</b></h1>
 
 Whispering rumors echo through the villages, sharing legends told only by the best storytellers. It refers to NATARS, the most feared warrior of the TRAVIAN world. Their killing is the dream of any hero, the purpose of any fighter. No one knows how NATARS got to get such power, and their warriors so cruel. Determined to discover the source of the NATARS power, the fighters send a group of elite spies to spy them. I do not go through many hours and come back with fear in their eyes and balancing fantastic theories: it seems that the natural power comes from the mysterious objects they call artefacts that they stole from our ancestors. Try to steal the artefacts of her, and you can control their power.
@@ -1508,9 +1509,12 @@ There will be a countdown in game, showing the exact time of the release, '.(5 /
 
 //Building Plans
 define('WILL_SPAWN_IN', 'will spawn in');
-define('PLAN', 'Ancient Construction Plan');
-define('PLANVILLAGE', 'WW Buildingplan');
-define('PLAN_DESC', 'With this ancient construction plan you will able to build World Wonder to level 50. to build further, your alliance must hold at least two plans.');
+define('PLAN', 'Small Construction Plan');
+define('PLANVILLAGE', 'Small WW Buildingplan');
+define('PLAN_DESC', 'With this small ancient construction plan you will be able to build a World Wonder from level 1 to 50. To build further (levels 51-100) you must drop this small plan and conquer a large construction plan.');
+define('PLAN_LARGE', 'Large Construction Plan');
+define('PLANVILLAGE_LARGE', 'Large WW Buildingplan');
+define('PLAN_LARGE_DESC', 'With this large ancient construction plan you will be able to build a World Wonder from level 51 to 100. You may not hold a small construction plan at the same time.');
 define('PLAN_INFO', '<h1><b>World Wonder Construction Plans</b></h1>
 
 
