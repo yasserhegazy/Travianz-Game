@@ -18,6 +18,9 @@ docker compose exec -u root web rm -rf /var/www/html/install
 git checkout -- install/
 
 echo "[4/4] Applying GameEngine permissions..."
+# Restore ownership to host user so git pull always works
+HOST_UID=$(id -u)
+docker compose exec -u root web chown $HOST_UID /var/www/html/GameEngine
 docker compose exec -u root web chmod -R 755 /var/www/html/GameEngine
 docker compose exec -u root web chmod -R 777 /var/www/html/GameEngine/Prevention
 docker compose exec -u root web chmod -R 777 /var/www/html/var/log
