@@ -8115,7 +8115,7 @@ if (count($jokers) > 0)
               SUM(IF(size = '1', 1, 0)) small,
               SUM(IF(size = '2', 1, 0)) great,
               SUM(IF(size = '3', 1, 0)) `unique`
-              FROM " . TB_PREFIX . "artefacts WHERE owner = ".(int) $uid.($mode ? " AND active = 1 AND del = 0" : "");
+              FROM " . TB_PREFIX . "artefacts WHERE owner = ".(int) $uid." AND type != 15".($mode ? " AND active = 1 AND del = 0" : "");
 	    $result = mysqli_query($this->dblink, $q);
 	    return $this->mysqli_fetch_all($result)[0];
 	}
@@ -8157,11 +8157,19 @@ if (count($jokers) > 0)
 
         $artifact = $this->getOwnArtefactInfo($from);
         if (!empty($artifact)) return  "Treasury is full. Your hero could not claim the artefact";
-        
+
         $uid = $this->getVillageField($from, "owner");
         $vuid = $this->getVillageField($vref, "owner");
 
-        $artifact = $this->getOwnArtifactsSum($uid);
+        // Building plans are separate from regular artifacts — check independently
+        if ($type == 15) {
+            $plans = $this->getWWConstructionPlans($uid);
+            if ((int)($plans[0]['Total'] ?? 0) >= 1 && $uid != $vuid) {
+                return "Max num. of building plans. Your hero could not claim the artefact";
+            }
+        }
+
+        $artifact = $this->getOwnArtifactsSum($uid); // type=15 already excluded
 
         if ($artifact['totals'] < 3 || $uid == $vuid) {
             $DefenderFields = $this->getResourceLevel( $vref );
