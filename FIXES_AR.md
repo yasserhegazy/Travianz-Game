@@ -2,7 +2,7 @@
 
 > **المشروع:** TravianZ  
 > **الفرع:** testing  
-> **الملفات المعدّلة:** `GameEngine/Database.php` — `GameEngine/Artifacts.php` — `GameEngine/Automation.php` — `Templates/Build/`  
+> **الملفات المعدّلة:** `GameEngine/Database.php` — `GameEngine/Artifacts.php` — `GameEngine/Automation.php` — `GameEngine/Building.php` — `GameEngine/Units.php` — `GameEngine/Lang/` — `Templates/Build/` — `Templates/multivillage.tpl` — `Templates/Map/vilview.tpl` — `install/data/constant_format.tpl`  
 > **تاريخ الإصلاح:** يونيو 2026
 
 ---
@@ -10,6 +10,8 @@
 ## نظرة عامة
 
 تم اكتشاف وإصلاح **تسعة أخطاء** موزعة على منظومتين: قائمة البناء (Travian Plus / مهندس البناء)، ومنظومة توليد قرى التاتار والتحف. بعض هذه الأخطاء كانت تتسبب في تجميد السيرفر أو توليد عشرات الآلاف من القرى المكررة، وبعضها كان يمنع ظهور التحف والمخططات كليًا. فيما يلي شرح تفصيلي لكل خطأ وطريقة إصلاحه.
+
+إضافةً إلى ذلك، تم تطوير **ميزة جديدة كاملة** لنهاية اللعبة: *البناء ثنائي الطبقات لمعجزة العالم وساعة التتار* — موثّقة بالتفصيل في **القسم الثالث**.
 
 ---
 
@@ -323,6 +325,223 @@ define("NATARS_WW_BUILD_INTERVAL", (int) max(60, round(86400 / max(1, (int) SPEE
 
 هذا يضمن أن التاتار يبني مستوى واحدًا من المعجزة كل `86400 ÷ SPEED` ثانية — أي في سيرفر بسرعة 100، كل 14 دقيقة تقريبًا.
 
+> **ملاحظة:** أُعيد ضبط هذا الثابت لاحقًا ضمن ميزة "البناء ثنائي الطبقات" (انظر القسم الثالث، الفقرة 5) ليُحسب على أساس نافذة 72 ساعة من وقت اللعبة بدلًا من 24 ساعة.
+
+---
+
+# قسم ثالث — ميزة البناء ثنائي الطبقات لمعجزة العالم وساعة التتار (نهاية اللعبة)
+
+---
+
+## نظرة عامة على الميزة
+
+هذه **ميزة جديدة** (وليست إصلاح خطأ) تحوّل مرحلة نهاية اللعبة (بناء معجزة العالم) إلى سباق من مرحلتين ضد عدّاد زمني صارم تتحكم فيه قبائل التتار. تتكوّن الميزة من:
+
+1. **طبقتان للمخططات:** مخطط صغير (`type=15`) للمستويات 1–50، ومخطط كبير (`type=16`) للمستويات 51–100، مع إجبار اللاعب على **تبديل** المخطط عند المستوى 50.
+2. **معجزة التتار المحمية** (`معجزة التتار`): قرية معجزة واحدة محصّنة تمامًا لا يمكن مهاجمتها ولا احتلالها، يبنيها التتار تلقائيًا من المستوى 0 إلى 100 كعدّاد تنازلي ينهي السيرفر.
+3. **قرية معجزة واحدة لكل لاعب:** لا يمكن للاعب احتلال أكثر من قرية معجزة واحدة من القرى الـ 12 القابلة للاحتلال.
+
+---
+
+## 1. طبقتان لمخططات البناء — مخطط صغير (`type=15`) ومخطط كبير (`type=16`)
+
+### الحاجة
+كان النظام السابق يحتوي على **طبقة واحدة فقط** من المخططات (`type=15`)، وكان شرط البناء فوق المستوى 50 هو امتلاك التحالف لمخططين. الميزة الجديدة تقسم المخططات إلى طبقتين منفصلتين.
+
+### التنفيذ
+في `GameEngine/Artifacts.php`، تم تغيير ثابت `NATARS_WW_BUILDING_PLANS` من 12 مخططًا صغيرًا إلى **6 صغيرة + 6 كبيرة**:
+
+```php
+// قبل — 12 مخطط صغير فقط
+NATARS_WW_BUILDING_PLANS = [PLAN_DESC => [["type" => 15, ... "quantity" => 12, ...]]],
+
+// بعد — 6 صغيرة + 6 كبيرة
+NATARS_WW_BUILDING_PLANS = [
+    PLAN_DESC       => [["type" => 15, "name" => PLAN,       "vname" => PLANVILLAGE,       "quantity" => 6, ...]],
+    PLAN_LARGE_DESC => [["type" => 16, "name" => PLAN_LARGE,  "vname" => PLANVILLAGE_LARGE,  "quantity" => 6, ...]],
+];
+```
+
+وتمت إضافة نصوص اللغة الجديدة في `GameEngine/Lang/en.php` و`GameEngine/Lang/ar/part4.php`:
+
+| الثابت | العربية |
+|---|---|
+| `PLAN` | مخطط بناء معجزة صغير |
+| `PLANVILLAGE` | قرية مخطط بناء صغير |
+| `PLAN_LARGE` | مخطط بناء معجزة كبير |
+| `PLANVILLAGE_LARGE` | قرية مخطط بناء كبير |
+| `NATARWONDER` | معجزة التتار |
+
+---
+
+## 2. بوابة ترقية المعجزة — نموذج التبديل (`Building.php`)
+
+### المشكلة
+كانت دالة `allowWwUpgrade()` تعتمد على قاعدة التحالف القديمة (مخطط للاعب + مخطط للتحالف للمستويات فوق 50)، وهي لا تتوافق مع نظام الطبقتين.
+
+### الإصلاح
+تم استبدال القاعدة بالكامل بنموذج **التبديل**: المخطط الصغير يبني حتى المستوى 50، والمخطط الكبير يبني من 51 إلى 100 **بشرط ألا يكون اللاعب لا يزال يملك مخططًا صغيرًا**:
+
+```php
+// بعد الإصلاح — نموذج التبديل
+$userHasSmallPlan = $database->getWWConstructionPlans($session->uid, 0, 15);
+$userHasLargePlan = $database->getWWConstructionPlans($session->uid, 0, 16);
+
+if($wwHighestLevelFound < 50) $cached = $userHasSmallPlan;          // 1–50 → مخطط صغير
+else                          $cached = $userHasLargePlan && !$userHasSmallPlan; // 51+ → كبير وليس صغير
+```
+
+كما أُضيف معامل ثالث `$planType` لدالة `getWWConstructionPlans($uid, $alliance, $planType=15)` ليمكن الاستعلام عن كل طبقة على حدة.
+
+**إنفاذ فقدان المخطط أثناء البناء:** أُضيف فحص في `buildComplete()` (في `Automation.php`) يمنع ترقية مستوى المعجزة إذا فقد المالك المخطط المطلوب أثناء وجود المهمة في الطابور (تبقى المهمة في الطابور وتُستأنف تلقائيًا عند استعادة المخطط؛ والتتار مستثنون):
+
+```php
+if ($indi['type'] == 40 && (int) $villageOwner != Artifacts::NATARS_UID) {
+    $targetLevel = (int) $indi['level'];
+    $hasSmall = $database->getWWConstructionPlans($villageOwner, 0, 15);
+    $hasLarge = $database->getWWConstructionPlans($villageOwner, 0, 16);
+    $planOk = ($targetLevel <= 50) ? $hasSmall : ($hasLarge && !$hasSmall);
+    if (!$planOk) continue; // تخطّي الترقية مع إبقاء المهمة في الطابور
+}
+```
+
+---
+
+## 3. معجزة التتار المحمية — قرية لا يمكن مهاجمتها ولا احتلالها
+
+### التنفيذ
+عند توليد قرى المعجزات (`createWWVillages()` في `Artifacts.php`)، تُسمّى **آخر قرية** باسم `NATARWONDER` (معجزة التتار) وتبقى مملوكة للتتار `natar=1` دائمًا، بينما تبقى الـ 12 الأخرى باسم `WWVILLAGE` قابلة للاحتلال:
+
+```php
+$villageName = ($i == $numberOfVillages) ? NATARWONDER : WWVILLAGE; // آخر قرية = المعجزة المحمية
+```
+
+أُضيفت دالة مركزية في `Database.php` تُعرّف القرية المحمية بثلاثة شروط معًا (المالك + علم المعجزة + الاسم):
+
+```php
+function isProtectedNatarWonder($wref){
+    $q = "SELECT 1 FROM ".TB_PREFIX."vdata
+          WHERE wref = ".$wref."
+            AND owner = ".Artifacts::NATARS_UID."
+            AND natar = 1
+            AND name = '".mysqli_real_escape_string($this->dblink, NATARWONDER)."' LIMIT 1";
+    return mysqli_num_rows(mysqli_query($this->dblink, $q)) > 0;
+}
+```
+
+تُستخدم هذه الدالة في **ثلاثة مواضع** لمنع أي استهداف:
+
+1. **منع الهجوم المباشر** — في `Units.php` (`sendTroops`)، يُرفض الإرسال برسالة خطأ قبل إنشاء أي حركة:
+   ```php
+   if(!$isOasisTarget && $database->isProtectedNatarWonder($targetVid)) {
+       $form->addError("error", "لا يمكن مهاجمة معجزة التتار، فهي محمية تماماً ولا يمكن احتلالها.");
+   }
+   ```
+2. **منع الإغارة عبر قوائم الإغارة** (Farm List) — نفس الفحص في حلقة معالجة قوائم الإغارة في `Units.php`.
+3. **منع الاحتلال** — في كتلة الاحتلال في `Automation.php`، يُضبط `$nochiefing = 1` إذا كانت القرية هي معجزة التتار.
+
+---
+
+## 4. قرية معجزة واحدة لكل لاعب
+
+### التنفيذ
+أُضيفت دالة `countOwnedWWVillages($uid)` في `Database.php`:
+
+```php
+function countOwnedWWVillages($uid){
+    $q = "SELECT Count(*) as Total FROM ".TB_PREFIX."vdata WHERE owner = ".$uid." AND natar = 1";
+    return (int) mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC)['Total'];
+}
+```
+
+وفي كتلة الاحتلال في `Automation.php`، يُمنع احتلال قرية معجزة ثانية إذا كان المهاجم يملك واحدة بالفعل:
+
+```php
+if(!isset($nochiefing) && $to['natar'] == 1 && $database->countOwnedWWVillages($from['owner']) >= 1){
+    $nochiefing = 1;
+    $info_chief = "".$chief_pic.",لا يمكنك امتلاك أكثر من قرية معجزة واحدة.";
+}
+```
+
+**حماية قرى المخططات أيضًا:** استُبدل الفحص القديم الهشّ (`$to['name'] != 'WW Buildingplan'`) — الذي كان يعتمد على اسم القرية بلغة واحدة — بفحص قائم على التحفة المملوكة وغير مرتبط باللغة عبر `isNatarPlanVillage()`:
+
+```php
+function isNatarPlanVillage($wref){
+    $q = "SELECT 1 FROM ".TB_PREFIX."artefacts
+          WHERE vref = ".$wref." AND owner = ".Artifacts::NATARS_UID."
+            AND type IN (15, 16) AND del = 0 LIMIT 1";
+    return mysqli_num_rows(mysqli_query($this->dblink, $q)) > 0;
+}
+```
+
+---
+
+## 5. ساعة التتار — العدّاد التنازلي لنهاية اللعبة (`buildNatarWW`)
+
+### التنفيذ
+**أولًا — إعادة ضبط الفاصل الزمني** في `install/data/constant_format.tpl` ليُمثّل بناء المعجزة من 0 إلى 100 خلال نافذة **72 ساعة من وقت اللعبة** (الزمن الحقيقي الكلي = 72 ساعة ÷ SPEED):
+
+```php
+// معجزة التتار ترتفع من 0 إلى 100 خلال نافذة 72 ساعة من وقت اللعبة
+define("NATARS_WW_BUILD_INTERVAL", (int) max(1, round((72 * 3600) / 100 / max(1, (int) SPEED)))); // ثانية لكل مستوى
+```
+
+**ثانيًا — استهداف المعجزة المحمية فقط:** كان `buildNatarWW()` يختار أي قرية معجزة بـ `ORDER BY wref ASC LIMIT 1`، فبعد احتلال اللاعبين للقرى الأخرى قد يبني التتار قرية خاطئة. تم تعديل الاستعلام ليستهدف **معجزة التتار المحمية فقط** عبر اسمها:
+
+```php
+$q = "SELECT wref FROM ".TB_PREFIX."vdata
+      WHERE owner = ".Artifacts::NATARS_UID." AND natar = 1
+        AND name = '".mysqli_real_escape_string($database->dblink, NATARWONDER)."'
+      ORDER BY wref ASC LIMIT 1";
+```
+
+**ثالثًا — التوافق مع الخوادم القديمة:** إذا لم توجد قرية باسم `معجزة التتار` (سيرفر أُطلق قبل الميزة)، تُرقّى تلقائيًا قرية معجزة واحدة لا تزال مملوكة للتتار إلى الحالة المحمية (مرة واحدة فقط)، بدلًا من التوقف.
+
+---
+
+## 6. حدود المخططات وتفعيلها
+
+### المشكلة والإصلاح
+بعد إضافة الطبقة الكبيرة (`type=16`)، توجّب تحديث منطق الحدود ليستثني **الطبقتين** معًا:
+
+**أولًا** — استثناء كلا النوعين من حد التحف العادية في `getOwnArtifactsSum()`:
+```php
+// قبل: AND type != 15      →      بعد: AND type NOT IN (15, 16)
+```
+
+**ثانيًا** — في `canClaimArtifact()`، فحص مستقل لكل طبقة (يُسمح بمخطط واحد من كل نوع):
+```php
+if ($type == 15 || $type == 16) {
+    if ($this->getWWConstructionPlans($uid, 0, $type) && $uid != $vuid) {
+        return "Max num. of building plans. Your hero could not claim the artefact";
+    }
+}
+```
+
+**ثالثًا** — في `Artifacts.php` (تفعيل التحف)، تُفعَّل المخططات **دائمًا** بغض النظر عن حد الثلاث تحف، لأن المخطط لا يشغل فتحة تحفة. بدون هذا، لاعب يملك 3 تحف نشطة لن يستطيع أبدًا تفعيل مخطط محتل ولن يقدر على بناء المعجزة:
+
+```php
+if($artifact['type'] == 15 || $artifact['type'] == 16){
+    $database->activateArtifact($artifact['id']);
+    continue;
+}
+```
+
+---
+
+## 7. إعادة تسمية قرى المخططات في الواجهة (عرض فقط)
+
+### التنفيذ
+أي قرية تحمل مخطط بناء تُعرض باسم الطبقة المناسبة (صغير/كبير) **في الواجهة فقط** دون تعديل `vdata.name` (يُحفظ اسم اللاعب الحقيقي). أُضيفت دالتان في `Database.php`:
+
+```php
+villageDisplayName($wref, $rawName)      // اسم العرض لقرية واحدة
+getPlanTypesByVillages($wrefs)           // استعلام مجمّع: [wref => نوع المخطط] لتفادي N+1
+```
+
+- **مبدّل القرى** (`Templates/multivillage.tpl`): يستخدم `getPlanTypesByVillages()` لجلب أنواع المخططات في استعلام واحد، ثم يعرض اسم الطبقة.
+- **عرض القرية على الخريطة** (`Templates/Map/vilview.tpl`): يستخدم `villageDisplayName()`، ويعرض أيقونة المخطط للطبقتين الصغيرة والكبيرة (`PLANVILLAGE` أو `PLANVILLAGE_LARGE`).
+
 ---
 
 ## نتائج الاختبار
@@ -362,17 +581,35 @@ define("NATARS_WW_BUILD_INTERVAL", (int) max(60, round(86400 / max(1, (int) SPEE
 | العدد الكلي لقرى التاتار على ملفه الشخصي: **89 قرية** | ✅ |
 | رسائل النظام العامة ظهرت لجميع اللاعبين | ✅ |
 
+### اختبار ميزة البناء ثنائي الطبقات (آلي عبر Playwright على السيرفر الفعلي)
+| الاختبار | النتيجة |
+|---|---|
+| مهاجمة `معجزة التتار` تُرفض برسالة "لا يمكن مهاجمة معجزة التتار..." ولا تُنشأ أي حركة | ✅ |
+| ساعة التتار: مستوى المعجزة `f99` يرتفع تلقائيًا (شوهد 18 ← 19) و`f99t=40` | ✅ |
+| الفاصل الزمني = `259` ثانية/مستوى = `72×3600÷100÷SPEED` (سرعة 10) | ✅ |
+| بوابة الترقية — 6 سيناريوهات: صغير 1–50، كبير 51+، إجبار التبديل، حجب الاحتفاظ بالاثنين | ✅ 6/6 |
+| قرية معجزة واحدة لكل لاعب: `countOwnedWWVillages` يحجب احتلال الثانية | ✅ |
+| عدد المخططات المولّدة: 6 صغيرة (`type=15`) + 6 كبيرة (`type=16`) | ✅ |
+| عدد قرى المعجزات: 12 قرية قابلة للاحتلال + 1 معجزة تتار محمية | ✅ |
+| مبدّل القرى يعرض اسم طبقة المخطط (صغير/كبير) دون تعديل الاسم الحقيقي | ✅ |
+
 ---
 
 ## ملخص الملفات المعدّلة
 
 | الملف | التغييرات |
 |---|---|
-| `GameEngine/Database.php` | إصلاح الحلقة اللانهائية، إصلاح تكرار الخلايا، إضافة `areArtifactsSpawned($mode)`، إضافة `getBuildingByField()` و`getMasterJobsByField()`، استثناء `type=15` من `getOwnArtifactsSum`، فحص مستقل لمخططات البناء في `canClaimArtifact` |
-| `GameEngine/Artifacts.php` | إصلاح `type=15`، إزالة حذف-إنشاء WW، تحسين `createNatars()` |
-| `GameEngine/Automation.php` | إصلاح ترفيع loopcon (مهمة واحدة فقط)، تغليف كل طريقة بـ try/catch، إصلاح `Artifacts::NATARS_UID` |
+| `GameEngine/Database.php` | إصلاح الحلقة اللانهائية، إصلاح تكرار الخلايا، إضافة `areArtifactsSpawned($mode)`، إضافة `getBuildingByField()` و`getMasterJobsByField()`، استثناء `type=15/16` من `getOwnArtifactsSum`، فحص مستقل لمخططات البناء في `canClaimArtifact`. **[الميزة]** معامل `$planType` لـ `getWWConstructionPlans`، إضافة `isProtectedNatarWonder`، `isNatarPlanVillage`، `countOwnedWWVillages`، `villageDisplayName`، `getPlanTypesByVillages` |
+| `GameEngine/Artifacts.php` | إصلاح `type=15`، إزالة حذف-إنشاء WW، تحسين `createNatars()`. **[الميزة]** 6 مخططات صغيرة + 6 كبيرة، تسمية آخر قرية `NATARWONDER`، تفعيل المخططات (15/16) دائمًا بغض النظر عن حد التحف |
+| `GameEngine/Automation.php` | إصلاح ترفيع loopcon (مهمة واحدة فقط)، تغليف كل طريقة بـ try/catch، إصلاح `Artifacts::NATARS_UID`. **[الميزة]** حراس الاحتلال (معجزة محمية + قرية واحدة لكل لاعب + قرى المخططات)، استهداف `buildNatarWW` للمعجزة المحمية + توافق الخوادم القديمة، فحص فقدان المخطط في `buildComplete` |
+| `GameEngine/Building.php` | **[الميزة]** `allowWwUpgrade` — نموذج التبديل بين المخطط الصغير (1–50) والكبير (51+) |
+| `GameEngine/Units.php` | **[الميزة]** منع مهاجمة معجزة التتار في `sendTroops` وفي قوائم الإغارة |
+| `GameEngine/Lang/en.php` — `GameEngine/Lang/ar/part4.php` | **[الميزة]** نصوص `PLAN/PLANVILLAGE` (صغير) + `PLAN_LARGE/PLANVILLAGE_LARGE` (كبير) + `NATARWONDER` |
 | `Templates/Build/upgrade.tpl` | إصلاح معادلة المستوى: `currentLevel + 1 + loopsame + master` |
 | `Templates/Build/next.tpl` | استبدال `isCurrent/isLoop` بـ `count(getBuildingByField)` |
 | `Templates/Build/avaliable/availupgrade.tpl` | نفس إصلاح next.tpl |
 | `Templates/Build/wwupgrade.tpl` | نفس إصلاح upgrade.tpl للمعجزة |
+| `Templates/multivillage.tpl` | **[الميزة]** عرض اسم طبقة المخطط في مبدّل القرى عبر `getPlanTypesByVillages` (عرض فقط) |
+| `Templates/Map/vilview.tpl` | **[الميزة]** اسم العرض عبر `villageDisplayName` + أيقونة المخطط للطبقتين |
 | `install/templates/config.tpl` | إضافة `NATARS_WW_BUILD_INTERVAL`، ضبط قيم افتراضية |
+| `install/data/constant_format.tpl` | **[الميزة]** إعادة ضبط `NATARS_WW_BUILD_INTERVAL` لنافذة 72 ساعة من وقت اللعبة (`72×3600÷100÷SPEED`) |
