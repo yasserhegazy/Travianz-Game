@@ -512,11 +512,12 @@ if(mysqli_num_rows($natarsExists) > 0) {
         $nextEffect = "-";
 
         if ( is_array($artifact) ) {
-          if($artifact['size'] == 1 && $artifact['type'] != 15){
+          $isWWPlan = in_array((int) $artifact['type'], [15, 16], true);
+          if($artifact['size'] == 1 && !$isWWPlan){
             $requiredLevel = 10;
             $effectInfluence = VILLAGE;
           }else{
-            $requiredLevel = $artifact['type'] != 15 ? 20 : 10;
+            $requiredLevel = !$isWWPlan ? 20 : 10;
             $effectInfluence = ACCOUNT;
           }
 
@@ -566,7 +567,7 @@ if(mysqli_num_rows($natarsExists) > 0) {
               $betterorbadder = $artifactBadEffect ? SPIES_INCREASE : SPIES_DECRESE;
               break;
           }
-          $bonus = isset($betterorbadder) ? $betterorbadder." (<b>".str_replace(["(", ")"], "" , $effect)."</b>)" : (($kind == 15 && $artifact['active']) ? "<b>".WW_BUILDING_PLAN."</b>" : "<b>Not yet active</b>");
+          $bonus = isset($betterorbadder) ? $betterorbadder." (<b>".str_replace(["(", ")"], "" , $effect)."</b>)" : ((in_array((int) $kind, [15, 16], true) && $artifact['active']) ? "<b>".WW_BUILDING_PLAN."</b>" : "<b>Not yet active</b>");
         } else {
           $requiredLevel = 0;
           $active = 0;

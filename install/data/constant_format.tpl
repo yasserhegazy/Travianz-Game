@@ -122,8 +122,8 @@ define("NATARS_UNITS",%NATARS_UNITS%);
 define("NATARS_SPAWN_TIME",%NATARS_SPAWN_TIME%); 
 define("NATARS_WW_SPAWN_TIME",%NATARS_WW_SPAWN_TIME%);
 define("NATARS_WW_BUILDING_PLAN_SPAWN_TIME",%NATARS_WW_BUILDING_PLAN_SPAWN_TIME%);
-// Natar Wonder rises level 0->100 over a 72h game-time window (total real run = 72h / SPEED).
-define("NATARS_WW_BUILD_INTERVAL", (int) max(1, round((72 * 3600) / 100 / max(1, (int) SPEED)))); // seconds per WW level
+// Natar Wonder starts immediately at level 1, then reaches level 100 after 72 game-hours.
+define("NATARS_WW_BUILD_INTERVAL", (int) max(1, round((72 * 3600) / 99 / max(1, (int) SPEED)))); // seconds per WW level after the immediate first level
 
 // ***** Nature troops regeneration time
 define("NATURE_REGTIME",%NATURE_REGTIME%); 

@@ -1260,9 +1260,12 @@ I plans de construction sont conquistabili immédiatement quand compaiono sur le
 Ci sarà un conto alla rovescia dans le jeu, que afficher l'maintenant esatta du rilascio, ".(5 / SPEED)." jours avant du lancio. ");
 
 //Building Plans
-define("PLAN","Piano di construction antico");
-define("PLANVILLAGE","Merveille Planimetria");
+define("PLAN","Petit plan de construction");
+define("PLANVILLAGE","Petit plan Merveille");
 define("PLAN_DESC","avec ce antico plan de construction sarai in rang di construire une Merveille jusqu'à al niveau 50. pour construire ulteriormente, la votre alliance deve contenere almeno due piani.");
+define("PLAN_LARGE","Grand plan de construction");
+define("PLANVILLAGE_LARGE","Grand plan Merveille");
+define("PLAN_LARGE_DESC","Avec ce grand plan de construction, vous pourrez construire une Merveille du niveau 51 au niveau 100. Vous ne pouvez pas posseder le petit plan en meme temps.");
 define("PLAN_INFO","<h1><b>Piani di construction des meraviglie du monde</b></h1>
 
 

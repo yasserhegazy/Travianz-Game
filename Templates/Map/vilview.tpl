@@ -19,7 +19,8 @@ if($basearray['fieldtype'] != 0){
 </span>
 </h1>
 <?php if($basearray['occupied'] && $basearray['capital']) { echo "<div id=\"dmain\">" . (defined('LANG') && LANG === 'ar' ? '(العاصمة)' : '(capital)') . "</div>"; }
-if($uinfo && $uinfo['owner'] == 3 && ($uinfo['name'] == PLANVILLAGE || $uinfo['name'] == PLANVILLAGE_LARGE)){
+$displayVillageName = $uinfo ? $database->villageDisplayName($basearray['id'], $uinfo['name']) : '';
+if($uinfo && $uinfo['owner'] == 3 && ($displayVillageName == PLANVILLAGE || (defined('PLANVILLAGE_LARGE') && $displayVillageName == PLANVILLAGE_LARGE))){
 ?>
 <img src="img/x.gif" id="detailed_map" class="f99" alt="<?php echo PLANVILLAGE;?>" />
 <?php }else{ ?>
@@ -541,6 +542,5 @@ if($type >= 18 && $type <= 21){
 </table>
 
 </div>
-
 
 

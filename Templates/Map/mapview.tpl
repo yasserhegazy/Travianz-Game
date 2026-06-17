@@ -170,7 +170,9 @@ if (isset($neutralarray[0])) {
 	}
 		
 	// Map content
-	if($donnees['ville_user']==3 && $donnees['ville_name']==PLANVILLAGE){
+		$planVillageNames = [PLANVILLAGE, 'WW Buildingplan', 'Small WW Buildingplan', 'Large WW Buildingplan'];
+		if(defined('PLANVILLAGE_LARGE')) $planVillageNames[] = PLANVILLAGE_LARGE;
+		if($donnees['ville_user']==3 && in_array($donnees['ville_name'], $planVillageNames, true)){
 	$map_content .= "<div id='i_".$row."_".$i."' class='o99'>$att</div>\r";
 	}else{
 	$map_content .= "<div id='i_".$row."_".$i."' class='".$image."'>$att</div>\r";
