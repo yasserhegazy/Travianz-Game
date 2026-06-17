@@ -2098,7 +2098,19 @@ $i != 34 &&
                                                 $info_chief = "".$chief_pic.",Inhabitants of ".$villname." village decided to join your empire.";
 
                                                 if ($artifact['vref'] == $data['to']){
-                                                    $database->claimArtefact($data['to'], $data['to'], $database->getVillageField($data['from'], "owner"));
+                                                    $newOwner = $database->getVillageField($data['from'], "owner");
+                                                    // The per-tier construction-plan limit (max one small/type 15 and one
+                                                    // large/type 16 per player) also applies when a plan is acquired by
+                                                    // chiefing a player's village that holds one — not only via hero claim.
+                                                    // If the chiefer already owns this tier, the plan can't be stacked:
+                                                    // return it to the Natars (a fresh, re-claimable plan village) instead
+                                                    // of transferring it, keeping the artefact's owner/vref consistent.
+                                                    if (in_array((int) $artifact['type'], [15, 16], true)
+                                                        && $database->getWWConstructionPlans($newOwner, 0, (int) $artifact['type'])) {
+                                                        $this->artifacts->returnArtifactToNatars($artifact);
+                                                    } else {
+                                                        $database->claimArtefact($data['to'], $data['to'], $newOwner);
+                                                    }
                                                 }
 
                                                 $database->setVillageFields(
@@ -3229,6 +3241,13 @@ if((int)$user['tribe'] == 1) {
             '".time()."'
         )
     ");
+
+    // End of the server: once any World Wonder reaches level 100, freeze all construction
+    // by clearing the global build queue. For a player win buildComplete() already does this,
+    // but the Natars build their Wonder directly via fdata (buildNatarWW) and never touch
+    // bdata — so this is the single place that ends the round for BOTH winner types. Guarded
+    // by the winner_history dedup check above, it runs exactly once.
+    mysqli_query($database->dblink, "TRUNCATE ".TB_PREFIX."bdata");
 }
     private function activateArtifacts() {
         global $database;

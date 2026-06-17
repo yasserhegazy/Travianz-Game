@@ -273,6 +273,11 @@ if($targetOwner > 0 && $targetOwner != (int)$session->uid) {
         return "لا يمكنك إرسال قوات إلى لاعب تحت الحماية.";
     }
 }
+
+// قرية معجزة التتار محمية تماماً ولا يمكن استهدافها (فحص مبكر على مستوى نموذج الإرسال)
+if(!$isOasisTarget && $database->isProtectedNatarWonder($id)) {
+    return "لا يمكن مهاجمة معجزة التتار، فهي محمية تماماً ولا يمكن احتلالها.";
+}
         //no errors, we can add the additional information to the post array
         array_push($post, $id, $villageInfo['name'], $villageInfo['owner'], 0);
         
