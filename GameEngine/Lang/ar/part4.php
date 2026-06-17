@@ -309,10 +309,10 @@ define('ARTEFACT', '<div style="text-align:center;line-height:1.8;font-size:16px
 define('WWVILLAGEMSG', '<h1><b>قرى معجزات العالم</b></h1>مضت أيام لا تحصى...');
 define('WILL_SPAWN_IN', 'ستظهر في');
 define('PLAN', 'مخطط بناء معجزة صغير');
-define('PLANVILLAGE', 'مخطط بناء صغير');
+define('PLANVILLAGE', 'مخطط بناء معجزة صغير');
 define('PLAN_DESC', 'بهذا المخطط الصغير تستطيع بناء معجزة العالم من المستوى 1 إلى 50. لاستكمال البناء (المستويات 51-100) يجب أن تتخلى عن المخطط الصغير وتحتل مخطط بناء كبير.');
 define('PLAN_LARGE', 'مخطط بناء معجزة كبير');
-define('PLANVILLAGE_LARGE', 'مخطط بناء كبير');
+define('PLANVILLAGE_LARGE', 'مخطط بناء معجزة كبير');
 define('PLAN_LARGE_DESC', 'بهذا المخطط الكبير تستطيع بناء معجزة العالم من المستوى 51 إلى 100. لا يمكنك امتلاك مخطط بناء صغير في نفس الوقت.');
 define('PLAN_INFO', '<h1><b>مخططات بناء معجزة العالم</b></h1>الكثير في الانتظار...');
 
