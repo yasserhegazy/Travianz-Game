@@ -497,6 +497,38 @@ if(mysqli_num_rows($natarsExists) > 0) {
         //Update the artifact with the new village id and owner
         $database->updateArtifactDetails($artifactArray['id'], ['vref' => $wid, 'owner' => self::NATARS_UID, 'active' => 0, 'del' => 0]);
     }
+
+    /**
+     * Return a conquered artifact to the Natars by restoring its CURRENT village
+     * in place (same wref): revert ownership, population, buildings and army to a
+     * pristine artifact village, and pin the artifact back to the Natars without
+     * creating a new village. This is what the Treasury "return artifact" button
+     * uses, so the village the player conquered (and damaged) is fully restored.
+     *
+     * @param array $artifactArray The artifact array (needs id, vref, size, desc)
+     */
+
+    public function restoreArtifactVillageToNatars($artifactArray){
+        global $database;
+
+        $size = (int) $artifactArray['size'];
+        $artifactArrays = array_merge(self::NATARS_ARTIFACTS, self::NATARS_WW_BUILDING_PLANS);
+        $vname = $artifactArrays[$artifactArray['desc']][$size - 1]['vname'];
+
+        //Troops + buildings, identical to a fresh artifact village
+        $multiplier = $size == 3 ? 4 : $size;
+        $unitsArray = ($this->natarsArtifactsUnits)($multiplier);
+        $troops[1][]    = array_values($unitsArray);
+        $troops[0]      = array_keys($unitsArray);
+        $buildings[1][] = array_values(self::NATARS_ARTIFACTS_BUILDINGS);
+        $buildings[0]   = array_keys(self::NATARS_ARTIFACTS_BUILDINGS);
+
+        //Revert the village the artifact currently sits in (same wref)
+        $database->revertVillageToNatarArtifact($artifactArray['vref'], $vname, $troops, $buildings);
+
+        //Pin the artifact back to the Natars, in place
+        $database->updateArtifactDetails($artifactArray['id'], ['owner' => self::NATARS_UID, 'active' => 0, 'del' => 0]);
+    }
     
     /**
      * Gets the artifact informations in plain text

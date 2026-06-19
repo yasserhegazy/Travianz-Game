@@ -1626,6 +1626,41 @@ public function getVillageOwner($vid) {
 		return mysqli_query($this->dblink, $q);
 	}
 
+	/**
+	 * Revert an existing village (in place, same wref) to a pristine Natar artifact
+	 * village: Natar ownership, pop 163, the standard artifact buildings (Treasury,
+	 * Crannies, ...) and the Natar army. Used when a player returns a conquered
+	 * artifact to the Natars so the village they damaged during conquest is fully
+	 * restored, instead of spawning a brand-new village elsewhere.
+	 *
+	 * @param int    $vref      The village to revert
+	 * @param string $vname     The artifact village name
+	 * @param array  $troops    Troops array ([0]=>unit keys, [1]=>[unit values]) as built for generateVillages
+	 * @param array  $buildings Buildings array ([0]=>field keys, [1]=>[field values]) as built for generateVillages
+	 */
+	function revertVillageToNatarArtifact($vref, $vname, $troops, $buildings) {
+	    $vref  = (int) $vref;
+	    $vname = mysqli_real_escape_string($this->dblink, $vname);
+	    $time  = time();
+
+	    // 1) Ownership + headline stats back to a Natar artifact village
+	    mysqli_query($this->dblink, "UPDATE " . TB_PREFIX . "vdata SET owner = " . Artifacts::NATARS_UID .
+	        ", natar = 0, capital = 0, pop = 163, loyalty = 100, name = '$vname', cp = 1," .
+	        " wood = 1500, clay = 1500, iron = 1500, crop = 1500, maxstore = " . VILLAGE_STORAGE_BASE .
+	        ", maxcrop = " . VILLAGE_STORAGE_BASE . ", lastupdate = $time WHERE wref = $vref");
+
+	    // 2) Rebuild the buildings exactly like a fresh artifact spawn (reuse addResourceFields)
+	    mysqli_query($this->dblink, "DELETE FROM " . TB_PREFIX . "fdata WHERE vref = $vref");
+	    $this->addResourceFields([$vref], [3], $buildings);
+
+	    // 3) Replace the player's troops with the Natar army (reuse addUnits)
+	    mysqli_query($this->dblink, "DELETE FROM " . TB_PREFIX . "units WHERE vref = $vref");
+	    $this->addUnits([$vref], $troops);
+
+	    // 4) Clear any build queue the player left behind
+	    mysqli_query($this->dblink, "DELETE FROM " . TB_PREFIX . "bdata WHERE wid = $vref");
+	}
+
     function isVillageOases($wref, $use_cache = true) {
         // retirieve form cache
         return $this->getVillageByWorldID($wref, $use_cache)['oasistype'];

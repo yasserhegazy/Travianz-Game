@@ -14,7 +14,7 @@ if (isset($_GET['returnartefact']) && (int)$_GET['returnartefact'] > 0 && $sessi
         if ((int)$artifactToReturn['id'] === $returnId && !in_array((int)$artifactToReturn['type'], [15, 16], true)) {
             $database->updateUserField($session->uid, 'gold', $session->gold - 2000, 1);
             $artifact = new Artifacts();
-            $artifact->returnArtifactToNatars($artifactToReturn);
+            $artifact->restoreArtifactVillageToNatars($artifactToReturn);
             header("Location: build.php?id=" . $id);
             exit;
         }
