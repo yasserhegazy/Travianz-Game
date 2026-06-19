@@ -6,6 +6,21 @@ $ownArtifacts = $database->getOwnArtefactsInfo($session->uid);
 $wref = $village->wid;
 $coor = $database->getCoor($wref);
 
+// Return an owned artifact to the Natars for 2000 gold (mirrors the joker reroll flow below).
+// Only real artifacts can be returned here; WW building plans (type 15/16) are excluded.
+if (isset($_GET['returnartefact']) && (int)$_GET['returnartefact'] > 0 && $session->gold >= 2000) {
+    $returnId = (int)$_GET['returnartefact'];
+    foreach ($ownArtifacts as $artifactToReturn) {
+        if ((int)$artifactToReturn['id'] === $returnId && !in_array((int)$artifactToReturn['type'], [15, 16], true)) {
+            $database->updateUserField($session->uid, 'gold', $session->gold - 2000, 1);
+            $artifact = new Artifacts();
+            $artifact->returnArtifactToNatars($artifactToReturn);
+            header("Location: build.php?id=" . $id);
+            exit;
+        }
+    }
+}
+
 ?>
 <body>
 <div class="gid27">
@@ -92,12 +107,20 @@ echo '
 تغيير التأثير (100 ذهب)
 </a>
 </div>';
+        } // close the joker (type==8) block — only jokers get the reroll link
 
+        if (!in_array((int)$ownArtifact['type'], [15, 16], true)) {
+            echo '
+<div style="margin-top:6px;">
+<a href="build.php?id='.$id.'&returnartefact='.$ownArtifact['id'].'">
+اعادة التحفة (2000 ذهب)
+</a>
+</div>';
+        }
         echo '</td>';
         echo '<td class="pla"><a href="karte.php?d=' . $ownArtifact['vref'] . '&c=' . $generator->getMapCheck($ownArtifact['vref']) . '">' . $database->getVillageField($ownArtifact['vref'], "name") . '</a></td>';
         echo '<td class="dist">'.date("d.m.Y H:i", $ownArtifact['conquered']) . '</td></tr>';
     }
-}
 }
 ?>
 </tbody>
