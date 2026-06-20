@@ -51,6 +51,7 @@ include_once("Generator.php");
 include_once("Multisort.php");
 include_once("Building.php");
 include_once("Artifacts.php");
+include_once("GameWorldReset.php");
 
 class Automation {
 
@@ -59,6 +60,7 @@ class Automation {
      */
     
     private $artifacts;
+    private $worldWasReset = false;
     
     public function __construct() {
     	
@@ -110,6 +112,9 @@ class Automation {
                     }
             	}
             	fclose($file);
+                if ($this->worldWasReset) {
+                    return;
+                }
             }
         }
         
@@ -3243,12 +3248,14 @@ if((int)$user['tribe'] == 1) {
     ");
 
     // End of the server: once any World Wonder reaches level 100, freeze all construction
-    // by clearing the global build queue. For a player win buildComplete() already does this,
-    // but the Natars build their Wonder directly via fdata (buildNatarWW) and never touch
-    // bdata — so this is the single place that ends the round for BOTH winner types. Guarded
-    // by the winner_history dedup check above, it runs exactly once.
-    mysqli_query($database->dblink, "TRUNCATE ".TB_PREFIX."bdata");
-}
+    // and immediately start a fresh round while keeping the winner_history table.
+    if (GameWorldReset::resetAfterWonderWinner()) {
+        $this->worldWasReset = true;
+    } else {
+        error_log('GameWorldReset: automatic reset failed after World Wonder winner registration');
+        mysqli_query($database->dblink, "TRUNCATE ".TB_PREFIX."bdata");
+    }
+	}
     private function activateArtifacts() {
         global $database;
         
