@@ -7993,8 +7993,11 @@ if (count($jokers) > 0)
 	    list($wref) = $this->escape_input((int) $wref);
 	    if ($rawName === null) $rawName = $this->getVillageField($wref, "name");
 
+	    // Only relabel genuine (un-stolen) Natar plan villages. A plan carried home by a
+	    // raiding hero is owned by the player and sits in his own village — that village
+	    // must keep its real name, not be shown as a plan village.
 	    $q = "SELECT type FROM ".TB_PREFIX."artefacts
-	          WHERE vref = ".$wref." AND type IN (15, 16) AND del = 0 LIMIT 1";
+	          WHERE vref = ".$wref." AND owner = ".Artifacts::NATARS_UID." AND type IN (15, 16) AND del = 0 LIMIT 1";
 	    $row = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
 
 	    if (!empty($row)) return ((int) $row['type'] === 16) ? PLANVILLAGE_LARGE : PLANVILLAGE;
@@ -8016,7 +8019,7 @@ if (count($jokers) > 0)
 	    if (empty($ids)) return [];
 
 	    $q = "SELECT vref, type FROM ".TB_PREFIX."artefacts
-	          WHERE vref IN (".implode(',', $ids).") AND type IN (15, 16) AND del = 0";
+	          WHERE vref IN (".implode(',', $ids).") AND owner = ".Artifacts::NATARS_UID." AND type IN (15, 16) AND del = 0";
 	    $res = mysqli_query($this->dblink, $q);
 
 	    $map = [];
