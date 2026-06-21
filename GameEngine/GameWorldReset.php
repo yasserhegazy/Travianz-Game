@@ -54,6 +54,11 @@ class GameWorldReset
             return false;
         }
 
+        if (!self::hasWorldData()) {
+            error_log('GameWorldReset: populateWorldData finished without usable world data');
+            return false;
+        }
+
         if (method_exists($database, 'populateCroppers')) {
             $cropperResult = $database->populateCroppers(0, true);
             if (is_array($cropperResult) && empty($cropperResult['ok'])) {
@@ -63,7 +68,9 @@ class GameWorldReset
 
         self::restoreAdminUsers($adminUsers);
         self::ensureAdminVillages();
-        self::updateServerStartConfig();
+        if (!self::updateServerStartConfig()) {
+            return false;
+        }
         self::clearRuntimeFiles();
 
         return true;
@@ -101,6 +108,25 @@ class GameWorldReset
         }
 
         return false;
+    }
+
+    private static function hasWorldData(): bool
+    {
+        global $database;
+
+        $table = TB_PREFIX.'wdata';
+        $result = mysqli_query(
+            $database->dblink,
+            'SELECT COUNT(*) AS total FROM `'.self::escapeIdentifier($table).'` WHERE fieldtype > 0'
+        );
+
+        if (!$result) {
+            error_log('GameWorldReset: cannot verify world data: '.mysqli_error($database->dblink));
+            return false;
+        }
+
+        $row = mysqli_fetch_assoc($result);
+        return (int)($row['total'] ?? 0) > 0;
     }
 
     private static function getAdminUsers(): array
@@ -185,7 +211,7 @@ class GameWorldReset
 
         $result = mysqli_query(
             $database->dblink,
-            'SELECT id, username FROM `'.self::escapeIdentifier(TB_PREFIX.'users').'` WHERE access >= 9 ORDER BY id ASC'
+            'SELECT id, username FROM `'.self::escapeIdentifier(TB_PREFIX.'users').'` WHERE access >= 8 ORDER BY id ASC'
         );
 
         if (!$result) {
@@ -240,30 +266,36 @@ class GameWorldReset
         return (int)$row['id'];
     }
 
-    private static function updateServerStartConfig(): void
+    private static function updateServerStartConfig(): bool
     {
-        global $autoprefix;
-
-        $configFile = ($autoprefix ?? '').'GameEngine/config.php';
+        $configFile = __DIR__.'/config.php';
         if (!is_file($configFile) || !is_writable($configFile)) {
             error_log('GameWorldReset: config file is not writable: '.$configFile);
-            return;
+            return false;
         }
 
         $now = time();
         $config = file_get_contents($configFile);
+        if ($config === false) {
+            error_log('GameWorldReset: cannot read config file: '.$configFile);
+            return false;
+        }
+
         $config = preg_replace('/define\("COMMENCE","[^"]*"\);/', 'define("COMMENCE","'.$now.'");', $config);
         $config = preg_replace('/define\("START_DATE",\s*"[^"]*"\);/', 'define("START_DATE", "'.date('d.m.Y', $now).'");', $config);
         $config = preg_replace('/define\("START_TIME",\s*"[^"]*"\);/', 'define("START_TIME", "'.date('H:i', $now).'");', $config);
 
-        file_put_contents($configFile, $config);
+        if (file_put_contents($configFile, $config) === false) {
+            error_log('GameWorldReset: cannot write config file: '.$configFile);
+            return false;
+        }
+
+        return true;
     }
 
     private static function clearRuntimeFiles(): void
     {
-        global $autoprefix;
-
-        $base = $autoprefix ?? '';
+        $base = dirname(__DIR__).'/';
         foreach (['automation.lck', 'Templates/text.tpl'] as $file) {
             $path = $base.$file;
             if (is_file($path)) {
