@@ -17,14 +17,35 @@ class GameWorldReset
 
     private static function reset(bool $preserveWinnerHistory): bool
     {
-        global $database;
-
         @set_time_limit(0);
 
-        if (!isset($database) || !isset($database->dblink)) {
-            error_log('GameWorldReset: database connection is not available');
+        // Pre-flight: validate everything BEFORE touching any table, so a failure
+        // (e.g. an unwritable config) can't leave a half-wiped world or make every
+        // later Automation tick re-attempt the destructive reset.
+        $preflight = self::preflight();
+        if ($preflight !== true) {
+            error_log('GameWorldReset: preflight failed - '.$preflight);
             return false;
         }
+
+        // One-shot guard: the heavy reset can outlast the 60s automation lock, so
+        // never let two ticks run it concurrently.
+        $lock = self::acquireResetLock();
+        if ($lock === false) {
+            error_log('GameWorldReset: another reset is already in progress');
+            return false;
+        }
+
+        try {
+            return self::performReset($preserveWinnerHistory);
+        } finally {
+            self::releaseResetLock($lock);
+        }
+    }
+
+    private static function performReset(bool $preserveWinnerHistory): bool
+    {
+        global $database;
 
         $adminUsers = self::getAdminUsers();
 
@@ -309,6 +330,61 @@ class GameWorldReset
                 @unlink($file);
             }
         }
+    }
+
+    private static function preflight()
+    {
+        global $database, $autoprefix;
+
+        if (!isset($database) || !isset($database->dblink)) {
+            return 'database connection unavailable';
+        }
+
+        $configFile = __DIR__.'/config.php';
+        if (!is_file($configFile) || !is_writable($configFile)) {
+            return 'config.php is not writable: '.$configFile;
+        }
+
+        foreach (['var/db/struct.sql', 'var/db/datagen-world-data.sql'] as $rel) {
+            $path = $autoprefix.$rel;
+            if (!is_readable($path)) {
+                return 'required data file not readable: '.$path;
+            }
+        }
+
+        return true;
+    }
+
+    private static function acquireResetLock()
+    {
+        $lockFile = dirname(__DIR__).'/var/world_reset.lck';
+        $fp = @fopen($lockFile, 'c');
+        if ($fp === false) {
+            return false;
+        }
+
+        // Non-blocking exclusive lock; the OS releases it automatically if the
+        // process dies, so a crashed reset never leaves a permanent deadlock.
+        if (!flock($fp, LOCK_EX | LOCK_NB)) {
+            fclose($fp);
+            return false;
+        }
+
+        @ftruncate($fp, 0);
+        @fwrite($fp, (string) time());
+
+        return ['fp' => $fp, 'file' => $lockFile];
+    }
+
+    private static function releaseResetLock($lock): void
+    {
+        if (!is_array($lock)) {
+            return;
+        }
+
+        @flock($lock['fp'], LOCK_UN);
+        @fclose($lock['fp']);
+        @unlink($lock['file']);
     }
 
     private static function escapeIdentifier(string $identifier): string

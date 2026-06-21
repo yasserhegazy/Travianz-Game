@@ -7583,7 +7583,11 @@ return mysqli_query($this->dblink, $q);
                         foreach ($chunk as $r) {
                             $key = $r['x'] . '_' . $r['y'];
                             if (!isset($bonusMap[$key])) {
-                                $bonusMap[$key] = $this->getBestOasisCropBonus((int)$r['x'], (int)$r['y']);
+                                // Snap to the values the croppers CHECK constraint allows
+                                // (0,25,...,150); the raw bonus can exceed 150 and would
+                                // otherwise fail the whole batch insert (leaving croppers empty).
+                                $rawBonus = (int) $this->getBestOasisCropBonus((int)$r['x'], (int)$r['y']);
+                                $bonusMap[$key] = max(0, min(150, (int) round($rawBonus / 25) * 25));
                             }
                         }
 
