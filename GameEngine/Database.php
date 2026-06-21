@@ -7448,17 +7448,25 @@ return mysqli_query($this->dblink, $q);
             $result = $this->dblink->multi_query($str);
 
             // fetch results of the multi-query in order to allow subsequent query() and multi_query() calls to work
-            while (mysqli_more_results($this->dblink) && mysqli_next_result($this->dblink)) {;}
+            while (mysqli_more_results($this->dblink)) {
+                if (!mysqli_next_result($this->dblink)) {
+                    error_log('populateWorldData SQL failed: '.mysqli_error($this->dblink));
+                    return -1;
+                }
+            }
 
             if (!$result) {
+                error_log('populateWorldData SQL failed: '.mysqli_error($this->dblink));
                 return -1;
             }
 
             $result = $this->regenerateOasisUnits(-1);
             if (!$result) {
+                error_log('populateWorldData oasis regeneration failed: '.mysqli_error($this->dblink));
                 return -1;
             }
         } catch (\Throwable $e) {
+            error_log('populateWorldData exception: '.$e->getMessage());
             return -1;
         } finally {
             // Recreate dropped indexes to keep runtime query performance unchanged.

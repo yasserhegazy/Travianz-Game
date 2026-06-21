@@ -2,7 +2,7 @@
 INSERT INTO %PREFIX%wdata
 
     -- this select gets the right number of columns for the wdata table
-    SELECT 0 as id, fieldtype, oasistype, x, y, 0 as occupied, image FROM
+    SELECT NULL as id, fieldtype, oasistype, x, y, 0 as occupied, image FROM
 
         -- this select prepares (i.e. generates) the world data
         (SELECT
