@@ -7221,6 +7221,38 @@ return mysqli_query($this->dblink, $q);
 		return mysqli_query($this->dblink,$q);
 	}
 
+	/**
+	 * End-of-round state for the post-Wonder grace period. Returns the winner name and
+	 * the seconds remaining until the world reset (winning WW's ww_lastupdate +
+	 * GameWorldReset::GRACE_SECONDS), or false if no World Wonder has reached level 100.
+	 *
+	 * @return array{winner:string,remaining:int}|false
+	 */
+	function getServerEndState() {
+	    $q = "SELECT f.ww_lastupdate, v.owner, u.username
+	          FROM " . TB_PREFIX . "fdata f
+	          INNER JOIN " . TB_PREFIX . "vdata v ON v.wref = f.vref
+	          INNER JOIN " . TB_PREFIX . "users u ON u.id = v.owner
+	          WHERE f.f99 = 100 AND f.f99t = 40
+	          ORDER BY f.ww_lastupdate DESC LIMIT 1";
+	    $res = mysqli_query($this->dblink, $q);
+	    if (!$res || !($row = mysqli_fetch_assoc($res))) {
+	        return false;
+	    }
+
+	    $winDate = (int) $row['ww_lastupdate'];
+	    if ($winDate <= 0) {
+	        return false;
+	    }
+
+	    $grace = class_exists('GameWorldReset', false) ? GameWorldReset::GRACE_SECONDS : 3 * 86400;
+	    $remaining = ($winDate + $grace) - time();
+	    $natarsUid = class_exists('Artifacts', false) ? Artifacts::NATARS_UID : 3;
+	    $winner = ((int) $row['owner'] === $natarsUid) ? 'التتار' : $row['username'];
+
+	    return ['winner' => $winner, 'remaining' => max(0, $remaining)];
+	}
+
 	//medal functions
 	function addclimberrankpop($user, $cp) {
 	    list($user, $cp) = $this->escape_input((int) $user, (int) $cp);

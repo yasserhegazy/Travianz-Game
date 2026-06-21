@@ -45,6 +45,33 @@ if ($_active_protect_ts > time()) {
 <?php
 }
 ?>
+<?php
+// Post-Wonder grace period: server has ended, show winner + countdown to the new round.
+$_serverEnd = isset($database) ? $database->getServerEndState() : false;
+if ($_serverEnd !== false):
+    $_se_remaining = (int)$_serverEnd['remaining'];
+?>
+    <div id="server_end_box" style="position:absolute; left:20px; top:50px; background:linear-gradient(to bottom,#a01818,#6e0f0f); color:#fff; border:1px solid #4d0a0a; border-radius:12px; padding:7px 14px; font-family:Tahoma,Arial,sans-serif; font-size:13px; font-weight:bold; line-height:1.5; z-index:1001; box-shadow:0 2px 6px rgba(0,0,0,0.4); text-align:center;">
+        <div>🏆 <?php echo (defined('LANG') && LANG === 'ar') ? 'انتهى السيرفر — الفائز' : 'Server ended — winner'; ?>: <?php echo htmlspecialchars($_serverEnd['winner']); ?></div>
+        <div style="margin-top:2px; font-weight:normal;"><?php echo (defined('LANG') && LANG === 'ar') ? 'جولة جديدة بعد' : 'New round in'; ?>: <span id="server_end_countdown"><?php echo $generator->getTimeFormat($_se_remaining); ?></span></div>
+    </div>
+    <script>
+    (function(){
+        var rem = <?php echo $_se_remaining; ?>;
+        var el = document.getElementById('server_end_countdown');
+        if(!el) return;
+        function p(n){ return n<10 ? '0'+n : n; }
+        function fmt(t){
+            if(t<=0) return '<?php echo (defined('LANG') && LANG === 'ar') ? 'جارٍ بدء الجولة الجديدة…' : 'starting new round…'; ?>';
+            var d=Math.floor(t/86400); t-=d*86400;
+            var h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
+            return (d>0 ? d+'<?php echo (defined('LANG') && LANG === 'ar') ? 'ي ' : 'd '; ?>' : '')+p(h)+':'+p(m)+':'+p(s);
+        }
+        el.textContent = fmt(rem);
+        setInterval(function(){ rem--; el.textContent = fmt(rem); }, 1000);
+    })();
+    </script>
+<?php endif; ?>
     <input type="checkbox" id="mobile-nav-toggle" style="display:none;" />
     <label for="mobile-nav-toggle" class="mobile-hamburger" style="display:none;">
         <span></span>

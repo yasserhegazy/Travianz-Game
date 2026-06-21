@@ -3247,14 +3247,18 @@ if((int)$user['tribe'] == 1) {
         ");
     }
 
-    // End of the server: once any World Wonder reaches level 100, freeze all construction
-    // and immediately start a fresh round while keeping the winner_history table.
-    if (GameWorldReset::resetAfterWonderWinner()) {
-        $this->worldWasReset = true;
-    } else {
-        error_log('GameWorldReset: automatic reset failed after World Wonder winner registration');
-        mysqli_query($database->dblink, "TRUNCATE ".TB_PREFIX."bdata");
+    // End of the server: once a World Wonder reaches level 100 the winner is locked in
+    // (recorded above), but the actual world reset is held back for a grace period so the
+    // round stays "ended" with a countdown shown to everyone. Only wipe once it elapses.
+    if (time() >= ($winDate + GameWorldReset::GRACE_SECONDS)) {
+        if (GameWorldReset::resetAfterWonderWinner()) {
+            $this->worldWasReset = true;
+        } else {
+            error_log('GameWorldReset: automatic reset failed after grace period');
+            mysqli_query($database->dblink, "TRUNCATE ".TB_PREFIX."bdata");
+        }
     }
+    // else: round ended — waiting out the grace period; the header shows the countdown.
 	}
     private function activateArtifacts() {
         global $database;

@@ -5,6 +5,13 @@ class GameWorldReset
     private const PRESERVED_TABLES = ['winner_history'];
     private const SYSTEM_USER_IDS = [1, 2, 4, 5];
 
+    /**
+     * Grace period between a World Wonder reaching level 100 and the actual world
+     * reset. During this window the server is "ended": the winner is locked in and a
+     * countdown to the new round is shown to everyone. Change this one value to tune it.
+     */
+    public const GRACE_SECONDS = 3 * 86400; // 3 days
+
     public static function resetAfterWonderWinner(): bool
     {
         return self::reset(true);
