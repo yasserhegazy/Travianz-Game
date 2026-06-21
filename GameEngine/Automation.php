@@ -3171,9 +3171,7 @@ $i != 34 &&
         LIMIT 1
     ");
 
-    if($exists && mysqli_num_rows($exists) > 0) {
-        return;
-    }
+    $winnerAlreadyRecorded = ($exists && mysqli_num_rows($exists) > 0);
 
     $userSql = mysqli_query($database->dblink, "
         SELECT id, username, tribe, alliance
@@ -3231,21 +3229,23 @@ if((int)$user['tribe'] == 1) {
         }
     }
 
-    mysqli_query($database->dblink, "
-        INSERT INTO ".TB_PREFIX."winner_history
-        (server_id, winner_name, tribe_name, alliance_name, winner_type, win_date, is_hidden, created_at)
-        VALUES
-        (
-            1,
-            '".mysqli_real_escape_string($database->dblink, $winnerName)."',
-            '".mysqli_real_escape_string($database->dblink, $tribeName)."',
-            '".mysqli_real_escape_string($database->dblink, $allianceName)."',
-            '".mysqli_real_escape_string($database->dblink, $winnerType)."',
-            '".$winDate."',
-            0,
-            '".time()."'
-        )
-    ");
+    if (!$winnerAlreadyRecorded) {
+        mysqli_query($database->dblink, "
+            INSERT INTO ".TB_PREFIX."winner_history
+            (server_id, winner_name, tribe_name, alliance_name, winner_type, win_date, is_hidden, created_at)
+            VALUES
+            (
+                1,
+                '".mysqli_real_escape_string($database->dblink, $winnerName)."',
+                '".mysqli_real_escape_string($database->dblink, $tribeName)."',
+                '".mysqli_real_escape_string($database->dblink, $allianceName)."',
+                '".mysqli_real_escape_string($database->dblink, $winnerType)."',
+                '".$winDate."',
+                0,
+                '".time()."'
+            )
+        ");
+    }
 
     // End of the server: once any World Wonder reaches level 100, freeze all construction
     // and immediately start a fresh round while keeping the winner_history table.
