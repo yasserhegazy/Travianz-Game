@@ -7250,7 +7250,7 @@ return mysqli_query($this->dblink, $q);
 	    $natarsUid = class_exists('Artifacts', false) ? Artifacts::NATARS_UID : 3;
 	    $winner = ((int) $row['owner'] === $natarsUid) ? 'التتار' : $row['username'];
 
-	    return ['winner' => $winner, 'remaining' => max(0, $remaining)];
+	    return ['winner' => $winner, 'uid' => (int) $row['owner'], 'remaining' => max(0, $remaining)];
 	}
 
 	//medal functions
