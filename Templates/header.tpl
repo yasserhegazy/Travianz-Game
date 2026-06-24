@@ -16,11 +16,14 @@
     <span class="mobile_server_name"><?php echo SERVER_NAME; ?></span>
 </div>
 <?php
+$_serverEnd = isset($database) ? $database->getServerEndState() : false;
+
 $_protect_ts = isset($session->userinfo['protect']) ? (int)$session->userinfo['protect'] : 0;
 $_gold_protect_ts = isset($session->userinfo['gold_protect']) ? (int)$session->userinfo['gold_protect'] : 0;
 $_active_protect_ts = max($_protect_ts, $_gold_protect_ts);
 
-if ($_active_protect_ts > time()) {
+// Hide any other timers (like beginner protection) when the server has ended
+if ($_serverEnd === false && $_active_protect_ts > time()) {
     $_protect_remaining = $_active_protect_ts - time();
 ?>
     <div id="bp_timer_box" style="position: absolute; left: 20px; top: 20px; background: #1cb5c9; color: white; border-radius: 12px; padding: 5px 12px; font-weight: bold; font-family: Tahoma, Arial, sans-serif; font-size: 14px; display: flex; align-items: center; gap: 6px; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
@@ -45,6 +48,31 @@ if ($_active_protect_ts > time()) {
 <?php
 }
 ?>
+<?php
+// Post-Wonder grace period: server has ended, show winner + countdown to the new round.
+if ($_serverEnd !== false):
+    $_se_remaining = (int)$_serverEnd['remaining'];
+?>
+    <div id="server_end_box" style="position:absolute; left:20px; top:50px; background:linear-gradient(to bottom,#a01818,#6e0f0f); color:#fff; border:1px solid #4d0a0a; border-radius:12px; padding:7px 14px; font-family:Tahoma,Arial,sans-serif; font-size:13px; font-weight:bold; line-height:1.5; z-index:1001; box-shadow:0 2px 6px rgba(0,0,0,0.4); text-align:center;">
+        <div>🏆 <?php echo (defined('LANG') && LANG === 'ar') ? 'انتهى السيرفر — الفائز' : 'Server ended — winner'; ?>: <a href="spieler.php?uid=<?php echo $_serverEnd['uid']; ?>" style="color:#00ff00; text-decoration:none; font-weight:bold;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'"><?php echo htmlspecialchars($_serverEnd['winner']); ?></a></div>
+        <div style="margin-top:4px; font-weight:normal;"><?php echo (defined('LANG') && LANG === 'ar') ? 'جولة جديدة بعد' : 'New round in'; ?>: <span id="server_end_countdown" style="font-size:16px; font-weight:bold; display:block; margin-top:2px;"><?php echo $generator->getTimeFormat($_se_remaining); ?></span></div>
+    </div>
+    <script>
+    (function(){
+        var rem = <?php echo $_se_remaining; ?>;
+        var el = document.getElementById('server_end_countdown');
+        if(!el) return;
+        function p(n){ return n<10 ? '0'+n : n; }
+        function fmt(t){
+            if(t<=0) return '<?php echo (defined('LANG') && LANG === 'ar') ? 'جارٍ بدء الجولة الجديدة…' : 'starting new round…'; ?>';
+            var h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
+            return p(h)+':'+p(m)+':'+p(s);
+        }
+        el.textContent = fmt(rem);
+        setInterval(function(){ rem--; el.textContent = fmt(rem); }, 1000);
+    })();
+    </script>
+<?php endif; ?>
     <input type="checkbox" id="mobile-nav-toggle" style="display:none;" />
     <label for="mobile-nav-toggle" class="mobile-hamburger" style="display:none;">
         <span></span>

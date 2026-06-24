@@ -355,6 +355,7 @@
 .statistics #submenu .btn_def{background-image:url(un/s/def.gif);}
 .statistics #submenu .btn_off{background-image:url(un/s/off.gif);}
 .statistics #submenu .btn_top10{background-image:url(un/s/top10.gif);}
+.statistics #submenu .btn_loot{background-image:url(un/s/loot.gif);}
 .statistics #submenu .active{background-position:right 0;}
 #map_content .m5{background:url(un/m/msup.gif) no-repeat;}
 #map_content .m6{background:url(un/m/mspy.gif?a) no-repeat;}

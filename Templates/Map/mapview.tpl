@@ -170,7 +170,9 @@ if (isset($neutralarray[0])) {
 	}
 		
 	// Map content
-	if($donnees['ville_user']==3 && $donnees['ville_name']==PLANVILLAGE){
+		$planVillageNames = [PLANVILLAGE, 'WW Buildingplan', 'Small WW Buildingplan', 'Large WW Buildingplan'];
+		if(defined('PLANVILLAGE_LARGE')) $planVillageNames[] = PLANVILLAGE_LARGE;
+		if($donnees['ville_user']==3 && in_array($donnees['ville_name'], $planVillageNames, true)){
 	$map_content .= "<div id='i_".$row."_".$i."' class='o99'>$att</div>\r";
 	}else{
 	$map_content .= "<div id='i_".$row."_".$i."' class='".$image."'>$att</div>\r";
@@ -272,13 +274,13 @@ if (isset($neutralarray[0])) {
 		<div id="map_coords">
 			<form name="map_coords" method="post" action="karte.php">
 				<div class="coord-inputs">
-					<span class="coord-label">X</span>
-					<input id="mcx" class="text" name="xp" value="<?php echo $x ?>" maxlength="4" type="number" />
-					<span class="coord-label">Y</span>
-					<input id="mcy" class="text" name="yp" value="<?php echo $y ?>" maxlength="4" type="number" />
-					<button type="submit" id="btn_ok" name="s1" class="modern-btn btn-ok">OK</button>
+					<span class="coordY">Y</span>
+<input id="mcy" class="text coordYInput" name="yp" value="<?php echo $y; ?>" maxlength="4" type="text" />
+<span class="coordX">X</span>
+<input id="mcx" class="text coordXInput" name="xp" value="<?php echo $x; ?>" maxlength="4" type="text" />
+					<button type="submit" id="map_btn_go" name="s1" class="trav_buttons">انتقال</button>
 				</div>
-				<?php echo "<a href=\"finder.php\" class=\"modern-btn btn-search\">".(defined('LANG') && LANG === 'ar' ? 'البحث بالخريطة' : 'Map Search')." <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"></line></svg></a>"; ?>
+				<?php echo "<a href=\"finder.php\" class=\"mapFinderBtn\">".(defined('LANG') && LANG === 'ar' ? 'الواحات والقمحيات' : 'Map Search')." <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"></circle><line x1=\"21\" y1=\"21\" x2=\"16.65\" y2=\"16.65\"></line></svg></a>"; ?>
 			</form>
 		</div>
 		<table cellpadding="1" cellspacing="1" id="map_infobox" class="default"><thead><tr><th colspan="2"><?php echo DETAIL;?></th></tr></thead><tbody><tr><th><?php echo PLAYER;?></th><td>-</td></tr><tr><th><?php echo POP;?></th><td>-</td></tr><tr><th><?php echo ALLIANCE;?></th><td></td></tr></tbody></table>

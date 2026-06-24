@@ -1,478 +1,249 @@
 <?php
- 
-#################################################################################
-##              -= YOU MAY NOT REMOVE OR CHANGE THIS NOTICE =-                 ##
-## --------------------------------------------------------------------------- ##
-##  Filename       general    .tpl                                             ##
-##  Developed by:  Dzoki                                                       ##
-##  License:       TravianZ Project                                            ##
-##  Copyright:     TravianZ (c) 2010-2011. All rights reserved.                ##
-##  Enhanced:      saulyzas                                                    ##
-#################################################################################
- 
-   $tribe1 = mysqli_fetch_array(mysqli_query($database->dblink,"SELECT Count(*) as Total FROM ".TB_PREFIX."users WHERE tribe = 1"), MYSQLI_ASSOC);
-   $tribe2 = mysqli_fetch_array(mysqli_query($database->dblink,"SELECT Count(*) as Total FROM ".TB_PREFIX."users WHERE tribe = 2"), MYSQLI_ASSOC);
-   $tribe3 = mysqli_fetch_array(mysqli_query($database->dblink,"SELECT Count(*) as Total FROM ".TB_PREFIX."users WHERE tribe = 3"), MYSQLI_ASSOC);
-   $tribes = [$tribe1['Total'], $tribe2['Total'], $tribe3['Total']];
-   $users = mysqli_fetch_array(mysqli_query($database->dblink,"SELECT Count(*) as Total FROM " . TB_PREFIX . "users WHERE tribe > 0 AND tribe < 4"), MYSQLI_ASSOC);
-   $users = $users['Total'];
+
+
+function stat_countdown($targetTime) {
+    $left = $targetTime - time();
+
+    if ($left <= 0) {
+        return 'ظهرت';
+    }
+
+    $days = floor($left / 86400);
+    $hours = floor(($left % 86400) / 3600);
+    $minutes = floor(($left % 3600) / 60);
+    $seconds = $left % 60;
+
+    return 'بعد '.$days.' يوم و '.$hours.' ساعة و '.$minutes.' دقيقة و '.$seconds.' ثانية';
+}
+
+function stat_end_countdown($targetTime) {
+    $left = $targetTime - time();
+
+    if ($left <= 0) {
+        return 'انتهى';
+    }
+
+    $days = floor($left / 86400);
+    $hours = floor(($left % 86400) / 3600);
+    $minutes = floor(($left % 3600) / 60);
+    $seconds = $left % 60;
+
+    return 'بعد '.$days.' يوم '.$hours.' ساعة '.$minutes.' دقيقة '.$seconds.' ثانية';
+}
+
+$startTime = defined('START_DATE') ? strtotime(START_DATE) : time();
+$serverAgeDays = max(0, floor((time() - $startTime) / 86400));
+
+$artifactsTime = defined('NATARS_SPAWN_TIME') ? $startTime + (NATARS_SPAWN_TIME * 86400) : 0;
+$plansTime = defined('NATARS_WW_BUILDING_PLAN_SPAWN_TIME') ? $startTime + (NATARS_WW_BUILDING_PLAN_SPAWN_TIME * 86400) : 0;
+$wwTime = defined('NATARS_WW_SPAWN_TIME') ? $startTime + (NATARS_WW_SPAWN_TIME * 86400) : 0;
+$serverEndTime = $startTime + (23 * 86400);
+
+$serverWinner = null;
+
+$winnerSql = mysqli_query($database->dblink, "
+    SELECT vref 
+    FROM ".TB_PREFIX."fdata 
+    WHERE f99 = '100' AND f99t = '40' 
+    LIMIT 1
+");
+
+if ($winnerSql && mysqli_num_rows($winnerSql) > 0) {
+    $winnerRow = mysqli_fetch_assoc($winnerSql);
+    $winnerVref = (int)$winnerRow['vref'];
+
+    $winnerVillage = $database->getVillage($winnerVref);
+
+    if ($winnerVillage && isset($winnerVillage['owner'])) {
+        $winnerOwner = (int)$winnerVillage['owner'];
+
+        $winnerUserSql = mysqli_query($database->dblink, "
+            SELECT id, username, tribe 
+            FROM ".TB_PREFIX."users 
+            WHERE id = ".$winnerOwner." 
+            LIMIT 1
+        ");
+
+        if ($winnerUserSql && mysqli_num_rows($winnerUserSql) > 0) {
+            $serverWinner = mysqli_fetch_assoc($winnerUserSql);
+        }
+    }
+}
+
+$tribe1 = mysqli_fetch_assoc(mysqli_query($database->dblink, "SELECT COUNT(*) as Total FROM ".TB_PREFIX."users WHERE tribe = 1"));
+$tribe2 = mysqli_fetch_assoc(mysqli_query($database->dblink, "SELECT COUNT(*) as Total FROM ".TB_PREFIX."users WHERE tribe = 2"));
+$tribe3 = mysqli_fetch_assoc(mysqli_query($database->dblink, "SELECT COUNT(*) as Total FROM ".TB_PREFIX."users WHERE tribe = 3"));
+
+$tribe4 = array('Total' => 0); // العرب مستقبلاً
+
+$usersQuery = mysqli_fetch_assoc(mysqli_query($database->dblink, "SELECT COUNT(*) as Total FROM ".TB_PREFIX."users WHERE tribe > 0 AND tribe < 4"));
+$users = (int)$usersQuery['Total'];
+
+$onlineQuery = mysqli_fetch_assoc(mysqli_query($database->dblink, "SELECT COUNT(*) as Total FROM ".TB_PREFIX."users WHERE timestamp > ".(time() - 600)." AND tribe > 0 AND tribe < 4"));
+$online = (int)$onlineQuery['Total'];
+
+function tribe_percent($count, $total) {
+    return ($total > 0) ? round(($count / $total) * 100, 2).'%' : '0%';
+}
 ?>
-<table cellpadding="1" cellspacing="1" id="world_player" class="world">
-        <thead>
-            <tr>
-                <th colspan="2"><?php echo (defined('LANG') && LANG === 'ar') ? 'إحصائيات العالم' : 'World Stats'; ?></th>
-            </tr>
-            <tr>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'إجمالي القرى' : 'Total Villages'; ?></td>
-                
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'إجمالي السكان' : 'Total Population'; ?></td>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                
-                <td>
-<?php
-$result2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."vdata");
-$num_rows2 = mysqli_num_rows($result2);
-echo $num_rows2;
-?></td>
-                <td>
-<?php
-$pop = mysqli_query($database->dblink,"SELECT SUM(pop) AS sumofpop FROM ".TB_PREFIX."vdata"); 
-$getpop = mysqli_fetch_assoc($pop); 
-echo number_format($getpop['sumofpop']);
-?></td>
+
+<style>
+.countdown-box span.num {
+    font-weight: bold;
+    color: #111;
+}
+.countdown-box span.txt {
+    color: #555;
+}
+.tribe-title {
+    font-weight: bold;
+}
+</style>
+
+<script>
+function updateStatCountdowns() {
+    var items = document.querySelectorAll('[data-countdown]');
+
+    items.forEach(function(el) {
+        var target = parseInt(el.getAttribute('data-countdown'), 10);
+        var now = Math.floor(Date.now() / 1000);
+        var left = target - now;
+
+        if (left <= 0) {
+            var endedText = el.getAttribute('data-ended-text') || 'ظهرت';
+el.innerHTML = '<span class="num">' + endedText + '</span>';
+            return;
+        }
+
+        var days = Math.floor(left / 86400);
+        var hours = Math.floor((left % 86400) / 3600);
+        var minutes = Math.floor((left % 3600) / 60);
+        var seconds = left % 60;
+
+        el.innerHTML =
+            '<span class="txt">بعد </span>' +
+            '<span class="num">' + days + '</span> <span class="txt">يوم </span>' +
+            '<span class="num">' + hours + '</span> <span class="txt">ساعة </span>' +
+            '<span class="num">' + minutes + '</span> <span class="txt">دقيقة </span>' +
+            '<span class="num">' + seconds + '</span> <span class="txt">ثانية</span>';
+    });
+}
+
+setInterval(updateStatCountdowns, 1000);
+window.addEventListener('load', updateStatCountdowns);
+</script>
+
+<table cellpadding="1" cellspacing="1" class="world">
+    <thead>
+        <tr>
+            <th colspan="2">معلومات السيرفر</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>بدأ السيرفر منذ</td>
+            <td><span style="font-weight:bold;"><?php echo $serverAgeDays; ?></span> يوم</td>
+        </tr>
+        <tr>
+    <td>مدة السيرفر</td>
+    <td><span style="font-weight:bold;">23</span> يوم</td>
 </tr>
-</tbody>
+<tr>
+    <td>ينتهي السيرفر</td>
+    <td>
+        <?php if ($serverWinner) { ?>
+            انتهى، فاز 
+            <a href="spieler.php?uid=<?php echo $serverWinner['id']; ?>">
+                <?php echo $serverWinner['username']; ?>
+            </a>
+            بالسيرفر
+        <?php } else { ?>
+            <span class="countdown-box" data-countdown="<?php echo $serverEndTime; ?>" data-ended-text="انتهى">
+                <?php echo stat_end_countdown($serverEndTime); ?>
+            </span>
+        <?php } ?>
+    </td>
+</tr>
+            <td>ظهور التحف</td>
+            <td class="countdown-box" data-countdown="<?php echo $artifactsTime; ?>"><?php echo $artifactsTime ? stat_countdown($artifactsTime) : 'غير محدد'; ?></td>
+        </tr>
+        <tr>
+            <td>ظهور مخطوطات البناء</td>
+            <td class="countdown-box" data-countdown="<?php echo $plansTime; ?>"><?php echo $plansTime ? stat_countdown($plansTime) : 'غير محدد'; ?></td>
+        </tr>
+        <tr>
+            <td>ظهور قرى المعجزة</td>
+            <td class="countdown-box" data-countdown="<?php echo $wwTime; ?>"><?php echo $wwTime ? stat_countdown($wwTime) : 'غير محدد'; ?></td>
+        </tr>
+        <tr>
+            <td>حجم إنتاج الموارد</td>
+            <td>x100</td>
+        </tr>
+        <tr>
+            <td>سرعة الجيوش</td>
+            <td>x10</td>
+        </tr>
+        <tr>
+            <td>حجم المخازن</td>
+            <td>x100</td>
+        </tr>
+        <tr>
+            <td>حجم المخابئ</td>
+            <td>x4000</td>
+        </tr>
+        <tr>
+            <td>موت الجيوش بسبب نقص القمح</td>
+            <td>لا تموت</td>
+        </tr>
+    </tbody>
 </table>
+
 <br />
- 
-    <table cellpadding="1" cellspacing="1" id="world_player" class="world">
-        <thead>
-            <tr>
-                <th colspan="2"><?php echo (defined('LANG') && LANG === 'ar') ? 'اللاعبون' : 'Players'; ?></th>
-            </tr>
-        </thead>
- 
-        <tbody>
-            <tr>
-                <th><?php echo (defined('LANG') && LANG === 'ar') ? 'اللاعبون المسجلون' : 'Registered players'; ?></th>
- 
-                <td><?php
-                   echo $users; ?></td>
-            </tr>
- 
-            <tr>
-                <th><?php echo (defined('LANG') && LANG === 'ar') ? 'اللاعبون النشطون' : 'Active players'; ?></th>
- 
-                <td><?php
-                   $active = mysqli_num_rows(mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."users WHERE timestamp > ".(time() - (3600*24))." AND tribe!=0 AND tribe!=4 AND tribe!=5"));
-                   echo $active; ?></td>
-            </tr>
- 
-            <tr>
-                <th><?php echo (defined('LANG') && LANG === 'ar') ? 'اللاعبون المتصلون' : 'Players online'; ?></th>
- 
-                <td><?php
-                    $online = mysqli_query($database->dblink,"SELECT Count(*) as Total FROM ".TB_PREFIX."users WHERE timestamp > ".(time() - (60*10))." AND tribe!=0 AND tribe!=4 AND tribe!=5");
-                    if (!empty($online)) {
-                        echo mysqli_fetch_assoc($online)['Total'];
-                    } else {
-                        echo 0;
-                    }
-                   ?></td>
-                   
-            </tr>
-        </tbody>
-    </table>
- 
-    <table cellpadding="1" cellspacing="1" id="world_tribes" class="world">
-        <thead>
-            <tr>
-                <th colspan="3"><?php echo (defined('LANG') && LANG === 'ar') ? 'القبائل' : 'Tribes'; ?></th>
-            </tr>
- 
-            <tr>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'القبيلة' : 'Tribe'; ?></td>
- 
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'المسجلون' : 'Registered'; ?></td>
- 
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'النسبة' : 'Percent'; ?></td>
-            </tr>
-        </thead>
- 
-        <tbody>
-            <tr>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الرومان' : 'Romans'; ?></td>
- 
-                <td><?php echo $tribes[0]; ?></td>
-                <td><?php echo ($users > 0) ? ($percents[0] = round(100 * ($tribes[0] / $users), 2))."%" : '---'; ?></td>
-            </tr>
-            <tr>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'التيوتون' : 'Teutons'; ?></td>
- 
-                <td><?php echo $tribes[1]; ?></td>
-                <td><?php echo ($users > 0) ? ($percents[1] = round(100 * ($tribes[1] / $users), 2))."%" : "---"; ?></td>
-            </tr>
-            <tr>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الغال' : 'Gauls'; ?></td>
-                <td><?php echo $tribes[2]; ?></td>
-                <td><?php echo ($users > 0) ? (100-$percents[0]-$percents[1])."%" : '---'; ?></td>
-            </tr>
-        </tbody>
-    </table>
-    <table cellpadding="1" cellspacing="1" id="world_tribes" class="world"> 
-        <thead> 
-            <tr> 
-                <th colspan="3"><?php echo (defined('LANG') && LANG === 'ar') ? 'إجمالي الذهب' : 'Total'; ?> <?php echo SERVER_NAME ?> <img src="./<?php echo GP_LOCATE; ?>img/a/gold.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'ذهب' : 'Gold'; ?>" title="<?php echo (defined('LANG') && LANG === 'ar') ? 'ذهب' : 'Gold'; ?>"> <?php echo (defined('LANG') && LANG === 'ar') ? '' : 'Gold'; ?></th> 
-            </tr> 
-            <tr> 
-                <td></td> 
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الإجمالي' : 'Total'; ?></td> 
-                
-            </tr> 
-        </thead> 
-        <tbody>
-            <tr>
-                <td><img src="./<?php echo GP_LOCATE; ?>img/a/gold.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'ذهب' : 'Gold'; ?>" title="<?php echo (defined('LANG') && LANG === 'ar') ? 'ذهب' : 'Gold'; ?>"> <?php echo (defined('LANG') && LANG === 'ar') ? 'ذهب' : 'Gold'; ?></td>
-                <td><?php $gold = mysqli_query($GLOBALS["link"], "SELECT SUM(gold) AS sumofgold FROM ".TB_PREFIX."users"); $getgold=mysqli_fetch_assoc($gold); echo $getgold['sumofgold']; ?></td>
-                
-            </tr>
-        </tbody>
-    </table> 
-        <table cellpadding="1" cellspacing="1" id="world_player" class="world">
-        <thead>
-            <tr>
-                <th colspan="6"><?php echo (defined('LANG') && LANG === 'ar') ? 'القوات' : 'Troops'; ?></th>
-            </tr>
-            <tr>
-                <td><img src='img/romenai.png'></td>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الإجمالي' : 'Total'; ?></td>
-                <td><img src='img/germanai.png'></td>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الإجمالي' : 'Total'; ?></td>
-                <td><img src='img/galai.png'></td>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الإجمالي' : 'Total'; ?></td>
-            </tr>
-        </thead>
-        <tbody>
- 
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u1"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u1) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u11"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u11) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u21"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u21) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u2"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u2) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u12"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u12) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u22"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u22) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u3"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u3) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u13"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u13) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u23"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u23) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u4"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u4) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u14"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u14) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u24"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u24) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u5"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u5) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u15"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u15) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u25"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u25) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u6"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u6) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u16"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u16) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u26"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u26) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u7"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u7) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u17"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u17) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u27"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u27) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u8"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u8) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u18"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u18) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u28"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u28) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u9"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u9) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u19"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u19) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u29"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u29) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-            </tr>
- 
-            <tr>
-                <td><img src="img/x.gif" class="unit u10"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u10) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                   <td><img src="img/x.gif" class="unit u20"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u20) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-                <td><img src="img/x.gif" class="unit u30"></td>
-                <td>
-                   <?php
-                   $orat = mysqli_query($database->dblink,"SELECT SUM(u30) AS sumofrats FROM ".TB_PREFIX."units"); 
-           $getorat = mysqli_fetch_assoc($orat); 
-           echo $getorat['sumofrats'];
-           ?></td>
-           
-            </tr>
- 
- 
-            </tbody>
-            </table>
-    <table cellpadding="1" cellspacing="1" id="world_tribes" class="world">
-        <thead>
-            <tr>
-                <th colspan="3"><?php echo (defined('LANG') && LANG === 'ar') ? 'متنوعات' : 'Miscellaneous'; ?></th>
-            </tr>
- 
-            <tr>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الهجمات' : 'Attacks'; ?></td>
- 
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'الخسائر' : 'Casualties'; ?></td>
- 
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'التاريخ' : 'Date'; ?></td>
-            </tr>
-        </thead>
- 
-        <tbody>
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()); ?></td>
- 
-                <td><?php echo date("j. M"); ?></td>
-            </tr>
-            
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()-(86400*1)); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()-(86400*1)); ?></td>
- 
-                <td><?php echo date("j. M",time()-(86400*1)); ?></td>
-            </tr>
- 
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()-(86400*2)); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()-(86400*2)); ?></td>
- 
-                <td><?php echo date("j. M",time()-(86400*2)); ?></td>
-            </tr>
- 
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()-(86400*3)); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()-(86400*3)); ?></td>
- 
-                <td><?php echo date("j. M",time()-(86400*3)); ?></td>
-            </tr>
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()-(86400*4)); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()-(86400*4)); ?></td>
- 
-                <td><?php echo date("j. M",time()-(86400*4)); ?></td>
-            </tr>
- 
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()-(86400*5)); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()-(86400*5)); ?></td>
- 
-                <td><?php echo date("j. M",time()-(86400*5)); ?></td>
-            </tr>
- 
-            <tr>
-                <td><?php echo $database->getAttackByDate(time()-(86400*6)); ?></td>
- 
-                <td><?php echo $database->getAttackCasualties(time()-(86400*6)); ?></td>
- 
-                <td><?php echo date("j. M",time()-(86400*6)); ?></td>
-            </tr>
-        </tbody>
-    </table>
-    <?php  ?>
-    
+
+<table cellpadding="1" cellspacing="1" class="world">
+    <thead>
+        <tr>
+            <th colspan="2">اللاعبون</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>اللاعبون المسجلون</td>
+            <td><?php echo number_format($users); ?></td>
+        </tr>
+        <tr>
+            <td>اللاعبون المتصلون</td>
+            <td><?php echo number_format($online); ?></td>
+        </tr>
+    </tbody>
+</table>
+
+<br />
+
+<table cellpadding="1" cellspacing="1" class="world">
+    <thead>
+        <tr>
+            <th colspan="4">القبائل</th>
+        </tr>
+        <tr>
+    <td class="tribe-title" style="color:#8B0000;">الرومان</td>
+    <td class="tribe-title" style="color:#006400;">الإغريق</td>
+    <td class="tribe-title" style="color:#B8860B;">الجرمان</td>
+    <td class="tribe-title" style="color:#00008B;">العرب</td>
+</tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><?php echo number_format($tribe1['Total']); ?> لاعب</td>
+            <td><?php echo number_format($tribe2['Total']); ?> لاعب</td>
+            <td><?php echo number_format($tribe3['Total']); ?> لاعب</td>
+            <td>0 لاعب</td>
+        </tr>
+        <tr>
+            <td><?php echo tribe_percent($tribe1['Total'], $users); ?></td>
+            <td><?php echo tribe_percent($tribe2['Total'], $users); ?></td>
+            <td><?php echo tribe_percent($tribe3['Total'], $users); ?></td>
+            <td>0%</td>
+        </tr>
+    </tbody>
+</table>

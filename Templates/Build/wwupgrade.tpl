@@ -16,8 +16,8 @@ if ( $building->allowWwUpgrade() ) {
     } else if ( $bindicate == 11 ) {
         echo "<p><span class=\"none\">" . BUILDING_BEING_DEMOLISHED . "</span></p>";
     } else {
-        $loopsame    = ( $building->isCurrent( $id ) || $building->isLoop( $id ) ) ? 1 : 0;
-        $doublebuild = ( $building->isCurrent( $id ) && $building->isLoop( $id ) ) ? 1 : 0;
+        $loopsame    = count($database->getBuildingByField($village->wid, $id));
+        $doublebuild = 0;
         $master      = count( $database->getMasterJobsByField( $village->wid, $id ) );
         $uprequire   = $building->resourceRequired( $id, $village->resarray[ 'f' . $id . 't' ], 1 + $loopsame + $doublebuild + $master );
 ?>
@@ -140,7 +140,7 @@ if ( $building->allowWwUpgrade() ) {
         } else {
             echo "<a class=\"build\" href=\"dorf2.php?a=$id&c=$session->checker\">" . UPGRADE_LEVEL . " ";
         }
-        echo $village->resarray[ 'f' . $id ] + ( $loopsame > 0 ? 2 : 1 );
+        echo $village->resarray[ 'f' . $id ] + 1 + $loopsame + $master;
         echo ".</a> <span class=\"none\">" . WAITING . "</span> ";
     }
     }

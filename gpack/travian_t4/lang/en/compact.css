@@ -7690,9 +7690,13 @@ div.alliance div#submenu img.btn_def, div.statistics div#submenu img.btn_def {
 div.alliance div#submenu img.btn_off, div.statistics div#submenu img.btn_off {
     background-image: url("../../img/s/off.gif");
 }
+img.btn_loot {
+    background-image: url("../../img/s/loot.gif");
+}
 div.statistics div#submenu img.btn_top10 {
     background-image: url("../../img/s/top10.gif");
 }
+
 div.statistics div#submenu2 img {
     background-position: 0 top;
     height: 30px;

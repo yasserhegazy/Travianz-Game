@@ -834,22 +834,64 @@ public function getBestOasisCropBonus($x, $y) {
 	}
 
 	// no need to cache this method
-	public function hasBeginnerProtection($vid) {
-	list($vid) = $this->escape_input($vid);
-    	$q = "SELECT u.protect FROM ".TB_PREFIX."users u,".TB_PREFIX."vdata v WHERE u.id=v.owner AND v.wref=".(int) $vid." LIMIT 1";
-	$result = mysqli_query($this->dblink,$q);
-	$dbarray = mysqli_fetch_array($result);
-	if(!empty($dbarray)) {
-		if(time()<$dbarray[0]) {
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
+public function hasBeginnerProtection($vid) {
+    list($vid) = $this->escape_input($vid);
+
+    $q = "SELECT u.protect, u.gold_protect
+          FROM " . TB_PREFIX . "users u
+          JOIN " . TB_PREFIX . "vdata v ON u.id = v.owner
+          WHERE v.wref = " . (int)$vid . "
+          LIMIT 1";
+
+    $result = mysqli_query($this->dblink, $q);
+    $row = mysqli_fetch_array($result);
+
+    if (!empty($row)) {
+        return (time() < (int)$row['protect'] || time() < (int)$row['gold_protect']);
+    }
+
+    return false;
+}
+public function hasUserBeginnerProtection($uid) {
+    list($uid) = $this->escape_input($uid);
+
+    $q = "SELECT protect, gold_protect
+          FROM " . TB_PREFIX . "users
+          WHERE id = " . (int)$uid . "
+          LIMIT 1";
+
+    $result = mysqli_query($this->dblink, $q);
+    $row = mysqli_fetch_array($result);
+
+    if (!empty($row)) {
+        return (time() < (int)$row['protect'] || time() < (int)$row['gold_protect']);
+    }
+
+    return false;
 }
 
+public function getProtectedPlayerLink($uid, $username) {
+    $style = "";
+
+    if ($this->hasUserBeginnerProtection($uid)) {
+        $style = " style=\"color:#2e7d32 !important;\"";
+    }
+
+    return "<a href=\"spieler.php?uid=".(int)$uid."\"".$style.">".$username."</a>";
+}
+public function getVillageOwner($vid) {
+    list($vid) = $this->escape_input($vid);
+
+    $q = "SELECT owner FROM " . TB_PREFIX . "vdata WHERE wref = " . (int)$vid . " LIMIT 1";
+    $result = mysqli_query($this->dblink, $q);
+    $row = mysqli_fetch_array($result);
+
+    if (!empty($row)) {
+        return (int)$row['owner'];
+    }
+
+    return 0;
+}
 	function updateUserField($ref, $field, $value, $switch) {
         list($ref) = $this->escape_input($ref);
 
@@ -1329,7 +1371,7 @@ public function getBestOasisCropBonus($x, $y) {
 	 * @return array Return the generated villages 
 	 */ 
 	
-	function generateBase($sector, $mode = 0, $numberOfVillages = 1) {
+	function generateBase($sector, $mode = 0, $numberOfVillages = 1, $alreadySelected = []) {
 	    list($sector, $mode, $numberOfVillages) = $this->escape_input((int) $sector, (int) $mode, (int)$numberOfVillages);
 
         // don't let SQL time out when 30-500 seconds (depending on php.ini) is not enough
@@ -1337,7 +1379,10 @@ public function getBestOasisCropBonus($x, $y) {
         $num_rows = $count = 0;
         $villages = [];
         $time = time();
-        
+
+        // Track cells already picked — seeded with cross-call picks from generateVillages so
+        // cells in overlapping radius rings (e.g. mode=4 ∩ mode=2) are never selected twice.
+        $selectedIds = array_map('intval', $alreadySelected);
         while ($numberOfVillages > 0) {
             switch($mode){
                 case 0:
@@ -1348,29 +1393,33 @@ public function getBestOasisCropBonus($x, $y) {
                     break;
                     
                 case 1:
-                default:
                     $radiusMin = 1;
-                    $radiusMax = pow(WORLD_MAX, 2);
-                    break;
-                    
-                case 2: //Small artifacts & WW building plans
-                    $radiusMin = round(pow(WORLD_MAX * 0.50, 2));
-                    $radiusMax = round(pow(WORLD_MAX * 0.75, 2));
-                    break;
-                
-                case 3: //Large artifacts
-                    $radiusMin = round(pow(WORLD_MAX * 0.35, 2));
-                    $radiusMax = round(pow(WORLD_MAX * 0.55, 2));
-                    break;
-                
-                case 4: //Unique artifacts
-                    $radiusMin = round(pow(WORLD_MAX * 0.05, 2));
-                    $radiusMax = round(pow(WORLD_MAX * 0.25, 2));
+                    $radiusMax = pow(30, 2);
                     break;
 
-                case 5: //WW villages
-                    $radiusMin = round(pow(WORLD_MAX * 0.8, 2));
-                    $radiusMax = round(pow(WORLD_MAX, 2));
+                case 2: // Small artifacts & WW building plans
+                    $radiusMin = round(pow(WORLD_MAX * 0.10, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.30, 2), 2);
+                    break;
+
+                case 3: // Large artifacts
+                    $radiusMin = round(pow(WORLD_MAX * 0.15, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.35, 2), 2);
+                    break;
+
+                case 4: // Unique artifacts
+                    $radiusMin = round(pow(WORLD_MAX * 0.05, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.20, 2), 2);
+                    break;
+
+                case 5: // WW villages
+                    $radiusMin = round(pow(WORLD_MAX * 0.25, 2), 2);
+                    $radiusMax = round(pow(WORLD_MAX * 0.45, 2), 2);
+                    break;
+
+                default:
+                    $radiusMin = 1;
+                    $radiusMax = pow(30, 2);
                     break;
             }
 
@@ -1382,22 +1431,33 @@ public function getBestOasisCropBonus($x, $y) {
             }
 
             //Choose villages beetween two circumferences, by using their formula (x^2 + y^2 = r^2)
-            $q = "SELECT id FROM ".TB_PREFIX."wdata WHERE fieldtype = 3 AND ($newSector) AND (POWER(x, 2) + POWER(y, 2) >= $radiusMin AND POWER(x, 2) + POWER(y, 2) <= $radiusMax) AND occupied = 0 ORDER BY RAND() LIMIT $numberOfVillages";
+            $excludeIds = empty($selectedIds) ? '' : ' AND id NOT IN ('.implode(',', $selectedIds).')';
+            $q = "SELECT id FROM ".TB_PREFIX."wdata WHERE occupied = 0 AND fieldtype = 3 AND ($newSector) AND (POWER(x, 2) + POWER(y, 2) >= $radiusMin AND POWER(x, 2) + POWER(y, 2) <= $radiusMax)".$excludeIds." ORDER BY RAND() LIMIT $numberOfVillages";
             $result = mysqli_query($this->dblink, $q);
 
-            //Prevent an infinite loop
             $resultedRows = mysqli_num_rows($result);
-            if($resultedRows == 0 && $count >= WORLD_MAX * 2) break;
-            
+
+            // No new candidate cells in this radius/sector. Only mode 0 widens its radius as
+            // $count grows, so it's worth retrying until the backstop. Every other mode uses a
+            // FIXED radius, so an identical query would just spin (the original cause of the
+            // multi-minute hang + execution-time fatal) -> stop immediately.
+            if($resultedRows == 0){
+                if($mode == 0 && $count < WORLD_MAX * 2){ $count++; continue; }
+                break;
+            }
+
             //Fill the villages array
-            $villages = array_merge($villages, $this->mysqli_fetch_all($result));
-            
+            $rows = $this->mysqli_fetch_all($result);
+            foreach($rows as $row) $selectedIds[] = (int) $row['id'];
+            $villages = array_merge($villages, $rows);
+
             $num_rows += $resultedRows;
             $numberOfVillages -= $resultedRows;
             $count++;
-            
+
         }
 
+        $wids = [];
         foreach($villages as $village) $wids[] = $village['id'];
 
         return $num_rows == 1 ? $wids[0] : $wids;
@@ -1432,27 +1492,39 @@ public function getBestOasisCropBonus($x, $y) {
 	    list($villageArrays, $uid, $username, $troopsArray, $buildingsArray) = $this->escape_input($villageArrays, (int) $uid, $username, $troopsArray, $buildingsArray);
 		
 	    $wids = $takenWids = $countedWids = $generatedWids = $i = [];
-	    
+
+	    // Accumulate all wids picked across every generateBase call so that overlapping radius
+	    // rings (e.g. mode=4 5-20% ∩ mode=2 10-30%) never yield the same cell twice.
+	    $globallyPickedWids = [];
+
 	    //Count each kid in its own array, to check how many villages must be created
 	    foreach($villageArrays as $village){
-	        if($village['wid'] == 0) $countedWids[$village['mode']][$village['kid']]++;
+	        if($village['wid'] == 0) $countedWids[$village['mode']][$village['kid']] = ($countedWids[$village['mode']][$village['kid']] ?? 0) + 1;
 	    }
-	    
+
 	    //Generate the number of desired village for each kid
 	    //and merge them with the more general "wids" array
 	    foreach($countedWids as $mode => $totalCount){
 	        foreach($totalCount as $sector => $count){
-	            $generatedWids = $this->generateBase($sector, $mode, $count);
-	            $wids[$mode] = array_merge((array)$wids[$mode], !is_array($generatedWids) ? [$generatedWids] : $generatedWids);
-	            if(empty($i[$mode])) $i[$mode] = 0;
+	            $generatedWids = $this->generateBase($sector, $mode, $count, $globallyPickedWids);
+	            $generatedWids = !is_array($generatedWids) ? [$generatedWids] : $generatedWids;
+	            // If the map has no free cells in this radius ring, abort entirely rather than
+	            // calling addVillage(null) which would insert corrupt wref=0 rows into vdata.
+	            if(empty($generatedWids) || (count($generatedWids) === 1 && $generatedWids[0] === null)) {
+	                error_log("generateVillages: no free cells for mode=$mode sector=$sector need=$count uid=$uid — aborting");
+	                return [];
+	            }
+	            $globallyPickedWids = array_merge($globallyPickedWids, $generatedWids);
+	            $wids[$mode] = array_merge($wids[$mode] ?? [], $generatedWids);
+	            if(!isset($i[$mode])) $i[$mode] = 0;
 	        }
 	    }
-	    
+
 	    //Create the villages
 		foreach($villageArrays as $village){
-		    
+
 		    //Check if the village wid isn't already set and assing one among the generated ones
-		    if($village['wid'] == 0) $village['wid'] = $wids[$village['mode']][$i[$village['mode']]++];
+		    if($village['wid'] == 0) $village['wid'] = $wids[$village['mode']][$i[$village['mode']]++] ?? null;
 		    
 		    //Merge the wids into an unique array
 		    $takenWids[] = $village['wid'];
@@ -1554,6 +1626,41 @@ public function getBestOasisCropBonus($x, $y) {
 		return mysqli_query($this->dblink, $q);
 	}
 
+	/**
+	 * Revert an existing village (in place, same wref) to a pristine Natar artifact
+	 * village: Natar ownership, pop 163, the standard artifact buildings (Treasury,
+	 * Crannies, ...) and the Natar army. Used when a player returns a conquered
+	 * artifact to the Natars so the village they damaged during conquest is fully
+	 * restored, instead of spawning a brand-new village elsewhere.
+	 *
+	 * @param int    $vref      The village to revert
+	 * @param string $vname     The artifact village name
+	 * @param array  $troops    Troops array ([0]=>unit keys, [1]=>[unit values]) as built for generateVillages
+	 * @param array  $buildings Buildings array ([0]=>field keys, [1]=>[field values]) as built for generateVillages
+	 */
+	function revertVillageToNatarArtifact($vref, $vname, $troops, $buildings) {
+	    $vref  = (int) $vref;
+	    $vname = mysqli_real_escape_string($this->dblink, $vname);
+	    $time  = time();
+
+	    // 1) Ownership + headline stats back to a Natar artifact village
+	    mysqli_query($this->dblink, "UPDATE " . TB_PREFIX . "vdata SET owner = " . Artifacts::NATARS_UID .
+	        ", natar = 0, capital = 0, pop = 163, loyalty = 100, name = '$vname', cp = 1," .
+	        " wood = 1500, clay = 1500, iron = 1500, crop = 1500, maxstore = " . VILLAGE_STORAGE_BASE .
+	        ", maxcrop = " . VILLAGE_STORAGE_BASE . ", lastupdate = $time WHERE wref = $vref");
+
+	    // 2) Rebuild the buildings exactly like a fresh artifact spawn (reuse addResourceFields)
+	    mysqli_query($this->dblink, "DELETE FROM " . TB_PREFIX . "fdata WHERE vref = $vref");
+	    $this->addResourceFields([$vref], [3], $buildings);
+
+	    // 3) Replace the player's troops with the Natar army (reuse addUnits)
+	    mysqli_query($this->dblink, "DELETE FROM " . TB_PREFIX . "units WHERE vref = $vref");
+	    $this->addUnits([$vref], $troops);
+
+	    // 4) Clear any build queue the player left behind
+	    mysqli_query($this->dblink, "DELETE FROM " . TB_PREFIX . "bdata WHERE wid = $vref");
+	}
+
     function isVillageOases($wref, $use_cache = true) {
         // retirieve form cache
         return $this->getVillageByWorldID($wref, $use_cache)['oasistype'];
@@ -1646,8 +1753,9 @@ public function getBestOasisCropBonus($x, $y) {
             }
         }
 
+        $owner = (int) $this->getVillageField($vref, 'owner', $use_cache);
         // Allow up to 6 oases per village — requires Hero Mansion level 10+
-        $maxOases = 6;
+        $maxOases = $this->getArtifactsValueInfluence($owner, $vref, 12, 6, false);
         if ( $HeroMansionLevel >= 10 && $this->VillageOasisCount( $vref ) < $maxOases ) {
             $OasisInfo = $this->getOasisInfo( $wref );
             //fix by ronix
@@ -1676,9 +1784,63 @@ public function getBestOasisCropBonus($x, $y) {
 		$vinfo = $this->getVillage($vref);
 		$uid = (int) $vinfo['owner'];
 		$q = "UPDATE `".TB_PREFIX."odata` SET conqured=".(int) $vref. ",loyalty=100,lastupdated=".time().",owner=$uid,name='".((defined('LANG') && LANG === 'ar') ? 'واحة محتلة' : 'Occupied Oasis')."' WHERE wref=".$wref;
-		return mysqli_query($this->dblink,$q);
-	}
+		$result = mysqli_query($this->dblink, $q);
 
+if ($result) {
+    $this->trimExtraOases($vref);
+}
+
+return $result;
+	}
+public function trimExtraOases($vref) {
+    $vref = (int) $vref;
+
+    $village = $this->getVillage($vref);
+    if (!$village || empty($village['owner'])) {
+        return;
+    }
+
+    $owner = (int) $village['owner'];
+
+    // الحد الأساسي 6 واحات + تأثير تحفة الواحات نوع 12
+    $maxOases = $this->getArtifactsValueInfluence($owner, $vref, 12, 6, false);
+
+    $currentOases = $this->VillageOasisCount($vref);
+
+    if ($currentOases <= $maxOases) {
+        return;
+    }
+
+    $removeCount = $currentOases - $maxOases;
+
+    // حذف آخر الواحات المحتلة، وليس أولها
+    $q = "
+        SELECT wref
+        FROM " . TB_PREFIX . "odata
+        WHERE conquered = $vref
+        ORDER BY lastupdated DESC
+        LIMIT $removeCount
+    ";
+
+    $oases = $this->query_return($q);
+
+    if (empty($oases)) {
+        return;
+    }
+
+    foreach ($oases as $oasis) {
+        $wref = (int) $oasis['wref'];
+
+        $this->query("
+            UPDATE " . TB_PREFIX . "odata
+            SET conquered = 0,
+                owner = 0,
+                loyalty = 100,
+                lastupdated = " . time() . "
+            WHERE wref = $wref
+        ");
+    }
+}
     public function modifyOasisLoyalty($wref) {
         list($wref) = $this->escape_input((int) $wref);
 
@@ -3594,27 +3756,61 @@ public function getBestOasisCropBonus($x, $y) {
    	function setMaxStoreForVillage($vid, $maxLevel) {
 	    $vid = (int) $vid;
 	    $maxLevel = (int) $maxLevel;
+$owner = $this->getVillageField($vid, 'owner');
 
+$multiplier = 1;
+
+// الصغيرة (تأثير قرية)
+if($this->getOwnArtefactInfoByType($vid, 6, 1)) {
+    $multiplier = 5;
+}
+
+// الكبيرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 2, 1)) {
+    $multiplier = 3;
+}
+
+// النادرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 3, 1)) {
+    $multiplier = 10;
+}
+
+$maxLevel *= $multiplier;
         $this->query("
-                        UPDATE
-                            ".TB_PREFIX."vdata
-                        SET
-                            `maxstore` = IF( `maxstore` - $maxLevel < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", `maxstore` - $maxLevel )
-                        WHERE
-                            wref=$vid");
+    UPDATE ".TB_PREFIX."vdata
+    SET `maxstore` = IF((`maxstore` - $maxLevel) < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", (`maxstore` - $maxLevel))
+    WHERE `wref` = $vid
+");
     }
 
     function setMaxCropForVillage($vid, $maxLevel) {
         $vid = (int) $vid;
         $maxLevel = (int) $maxLevel;
+$owner = $this->getVillageField($vid, 'owner');
 
+$multiplier = 1;
+
+// الصغيرة (تأثير قرية)
+if($this->getOwnArtefactInfoByType($vid, 6, 1)) {
+    $multiplier = 5;
+}
+
+// الكبيرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 2, 1)) {
+    $multiplier = 3;
+}
+
+// النادرة (تأثير عضوية)
+elseif($this->getOwnUniqueArtefactInfo2($owner, 6, 3, 1)) {
+    $multiplier = 10;
+}
+
+$maxLevel *= $multiplier;
         $this->query("
-                        UPDATE
-                            ".TB_PREFIX."vdata
-                        SET
-                            `maxcrop` = IF( `maxcrop` - $maxLevel < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", `maxcrop` - $maxLevel )
-                        WHERE
-                            wref=$vid");
+    UPDATE ".TB_PREFIX."vdata
+    SET `maxcrop` = IF((`maxcrop` - $maxLevel) < ".VILLAGE_STORAGE_BASE.", ".VILLAGE_STORAGE_BASE.", (`maxcrop` - $maxLevel))
+    WHERE `wref` = $vid
+");
     }
 
 	function modifyOasisResource($vid, $wood, $clay, $iron, $crop, $mode) {
@@ -4017,15 +4213,25 @@ public function getBestOasisCropBonus($x, $y) {
     }
 
     function modifyPop($vid, $pop, $mode) {
-        list($vid, $pop, $mode) = $this->escape_input((int) $vid, (int) $pop, $mode);
+    list($vid, $pop, $mode) = $this->escape_input((int) $vid, (int) $pop, $mode);
 
-        if(!$mode) {
-            $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop + $pop where wref = $vid";
-        } else {
-            $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop - $pop where wref = $vid";
-        }
-        return mysqli_query($this->dblink,$q);
+    if(!$mode) {
+        $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop + $pop where wref = $vid";
+    } else {
+        $q = "UPDATE " . TB_PREFIX . "vdata set pop = pop - $pop where wref = $vid";
     }
+
+    $result = mysqli_query($this->dblink, $q);
+
+    if($result && !$mode && $pop > 0) {
+        $owner = $this->getVillageField($vid, "owner");
+        if($owner > 0) {
+            $this->addclimberrankpop($owner, $pop);
+        }
+    }
+
+    return $result;
+}
 
     function addCP($ref, $cp) {
         list($ref, $cp) = $this->escape_input((int) $ref, (int) $cp);
@@ -4116,7 +4322,24 @@ public function getBestOasisCropBonus($x, $y) {
         $times = [];
         $endtimes = [];
         
-        foreach($getmovement as $movedata) {
+        $flatMovements = [];
+        if (is_array($getmovement)) {
+            foreach ($getmovement as $key => $val) {
+                if (is_array($val)) {
+                    if (isset($val['moveid'])) {
+                        $flatMovements[] = $val;
+                    } else {
+                        foreach ($val as $m) {
+                            if (is_array($m) && isset($m['moveid'])) {
+                                $flatMovements[] = $m;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        foreach($flatMovements as $movedata) {
             $time2 = $time - $movedata['starttime'];
             $moveIDs[] = $movedata['moveid'];
             $types[] = 4;
@@ -4127,8 +4350,10 @@ public function getBestOasisCropBonus($x, $y) {
             $endtimes[] = $time+$time2;
         }
         
-        $this->setMovementProc(implode(', ', $moveIDs));
-        $this->addMovement($types, $froms, $tos, $refs, $times, $endtimes);
+        if (!empty($moveIDs)) {
+            $this->setMovementProc(implode(', ', $moveIDs));
+            $this->addMovement($types, $froms, $tos, $refs, $times, $endtimes);
+        }
         
         $q = "DELETE FROM ".TB_PREFIX."enforcement WHERE `from` IN($wrefs)";
         $this->query($q);
@@ -5751,7 +5976,62 @@ References: User ID/Message ID, Mode
 		}
 
 		$result = $this->mysqli_fetch_all(mysqli_query($this->dblink,$q));
+// تحفة الهجوم المباغت
+if ($type == 3 && !$mode && is_array($result) && count($result)) {
 
+    foreach ($result as $k => $row) {
+
+        // فقط الهجمات
+        if (!isset($row['attack_type'])) {
+            continue;
+        }
+
+        $fromVillage = (int)$row['from'];
+        $toVillage   = (int)$row['to'];
+
+        // مالك القرية المهاجمة
+        $attackerVillage = $this->getVillage($fromVillage);
+        $attackerOwner   = (int)$attackerVillage['owner'];
+
+        // مالك القرية المدافعة
+        $defenderVillage = $this->getVillage($toVillage);
+        $defenderOwner   = (int)$defenderVillage['owner'];
+
+        // هل المدافع عنده تحفة الجواسيس؟
+        $defSpyArtifact = $this->getArtifactsValueInfluence($defenderOwner, $toVillage, 3, 0, false);
+
+        // إذا عنده تحفة الجواسيس -> اكشف الهجمة فورًا
+        if ($defSpyArtifact > 0) {
+            continue;
+        }
+
+        // تحفة الهجوم المباغت
+        $stealthValue = $this->getArtifactsValueInfluence($attackerOwner, $fromVillage, 14, 0, false);
+
+        // لا توجد تحفة
+        if ($stealthValue <= 0) {
+            continue;
+        }
+
+        $start = (int)$row['starttime'];
+        $end   = (int)$row['endtime'];
+
+        if ($end <= $start) {
+            continue;
+        }
+
+        // نسبة الطريق المقطوعة
+        $passed = (time() - $start) / ($end - $start);
+
+        // لم تصل للنسبة المطلوبة -> اخفِ الهجمة
+        if ($passed < $stealthValue) {
+            unset($result[$k]);
+        }
+    }
+
+    // إعادة ترتيب المصفوفة
+    $result = array_values($result);
+}
         // return a single value
         if (!$array_passed) {
             self::$marketMovementCache[$type.$village[0].$mode] = $result;
@@ -5850,6 +6130,17 @@ References: User ID/Message ID, Mode
 	}
 
 	function addAttack($vid, $t1, $t2, $t3, $t4, $t5, $t6, $t7, $t8, $t9, $t10, $t11, $type, $ctar1, $ctar2, $spy,$b1=0,$b2=0,$b3=0,$b4=0,$b5=0,$b6=0,$b7=0,$b8=0) {
+		global $database;
+
+if(!is_array($vid)) {
+
+    $kid = $database->getVillageField($vid, 'kid');
+
+    // منع الهجوم على قرية التتار المحمية
+    if($kid == 5) {
+        return false;
+    }
+}
 	    if (!is_array($vid)) {
 	        $vid = [$vid];
 	        $t1 = [$t1];
@@ -6396,7 +6687,7 @@ References: User ID/Message ID, Mode
 		
 			$now = time();
             $uid = $this->getVillageField($vid, "owner");
-            $each = $this->getArtifactsValueInfluence($uid, $vid, 5, $each);
+            //$each = $this->getArtifactsValueInfluence($uid, $vid, 5, $each);
             
             $time2 = $now + $each;
             $time = $now + ($each * $amt);
@@ -6438,8 +6729,12 @@ References: User ID/Message ID, Mode
             //Fixed part of negative troops (double troops) - by InCube
             $units .= $unit.' = '.$unit.' '.(($array_mode[$i] == 1)? '+':'-').'  '.($array_amt[$i] ? $array_amt[$i] : 0).(($number > $i+1) ? ', ' : '');
 		}
-		$q = "UPDATE ".TB_PREFIX."units set $units WHERE vref = $vref";
-		return mysqli_query($this->dblink, $q);
+		if(empty(trim($units))) {
+    return false;
+}
+
+$q = "UPDATE ".TB_PREFIX."units set $units WHERE vref = $vref";
+return mysqli_query($this->dblink, $q);
 	}
 
 	function getEnforce($vid, $from, $use_cache = true) {
@@ -6926,6 +7221,38 @@ References: User ID/Message ID, Mode
 		return mysqli_query($this->dblink,$q);
 	}
 
+	/**
+	 * End-of-round state for the post-Wonder grace period. Returns the winner name and
+	 * the seconds remaining until the world reset (winning WW's ww_lastupdate +
+	 * GameWorldReset::GRACE_SECONDS), or false if no World Wonder has reached level 100.
+	 *
+	 * @return array{winner:string,remaining:int}|false
+	 */
+	function getServerEndState() {
+	    $q = "SELECT f.ww_lastupdate, v.owner, u.username
+	          FROM " . TB_PREFIX . "fdata f
+	          INNER JOIN " . TB_PREFIX . "vdata v ON v.wref = f.vref
+	          INNER JOIN " . TB_PREFIX . "users u ON u.id = v.owner
+	          WHERE f.f99 = 100 AND f.f99t = 40
+	          ORDER BY f.ww_lastupdate DESC LIMIT 1";
+	    $res = mysqli_query($this->dblink, $q);
+	    if (!$res || !($row = mysqli_fetch_assoc($res))) {
+	        return false;
+	    }
+
+	    $winDate = (int) $row['ww_lastupdate'];
+	    if ($winDate <= 0) {
+	        return false;
+	    }
+
+	    $grace = class_exists('GameWorldReset', false) ? GameWorldReset::GRACE_SECONDS : 3 * 86400;
+	    $remaining = ($winDate + $grace) - time();
+	    $natarsUid = class_exists('Artifacts', false) ? Artifacts::NATARS_UID : 3;
+	    $winner = ((int) $row['owner'] === $natarsUid) ? 'التتار' : $row['username'];
+
+	    return ['winner' => $winner, 'uid' => (int) $row['owner'], 'remaining' => max(0, $remaining)];
+	}
+
 	//medal functions
 	function addclimberrankpop($user, $cp) {
 	    list($user, $cp) = $this->escape_input((int) $user, (int) $cp);
@@ -7153,17 +7480,25 @@ References: User ID/Message ID, Mode
             $result = $this->dblink->multi_query($str);
 
             // fetch results of the multi-query in order to allow subsequent query() and multi_query() calls to work
-            while (mysqli_more_results($this->dblink) && mysqli_next_result($this->dblink)) {;}
+            while (mysqli_more_results($this->dblink)) {
+                if (!mysqli_next_result($this->dblink)) {
+                    error_log('populateWorldData SQL failed: '.mysqli_error($this->dblink));
+                    return -1;
+                }
+            }
 
             if (!$result) {
+                error_log('populateWorldData SQL failed: '.mysqli_error($this->dblink));
                 return -1;
             }
 
             $result = $this->regenerateOasisUnits(-1);
             if (!$result) {
+                error_log('populateWorldData oasis regeneration failed: '.mysqli_error($this->dblink));
                 return -1;
             }
         } catch (\Throwable $e) {
+            error_log('populateWorldData exception: '.$e->getMessage());
             return -1;
         } finally {
             // Recreate dropped indexes to keep runtime query performance unchanged.
@@ -7280,7 +7615,11 @@ References: User ID/Message ID, Mode
                         foreach ($chunk as $r) {
                             $key = $r['x'] . '_' . $r['y'];
                             if (!isset($bonusMap[$key])) {
-                                $bonusMap[$key] = $this->getBestOasisCropBonus((int)$r['x'], (int)$r['y']);
+                                // Snap to the values the croppers CHECK constraint allows
+                                // (0,25,...,150); the raw bonus can exceed 150 and would
+                                // otherwise fail the whole batch insert (leaving croppers empty).
+                                $rawBonus = (int) $this->getBestOasisCropBonus((int)$r['x'], (int)$r['y']);
+                                $bonusMap[$key] = max(0, min(150, (int) round($rawBonus / 25) * 25));
                             }
                         }
 
@@ -7454,7 +7793,40 @@ References: User ID/Message ID, Mode
 	    list($uid, $vid, $kind, $multiplicand, $round) = $this->escape_input((int) $uid,(int) $vid, $kind, $multiplicand, $round);
 
 	    $artefacts = $foolArefacts = [];
-	    $multipliers = [1 => [4, 5, 3], 2 => [1/2, 1/3, 2/3], 3 => [5, 10, 3], 4 => [1/2, 1/2, 3/4], 5 => [1/2, 1/2, 3/4], 7 => [3, 6, 2]];
+		$jokers = array();
+
+$smallJoker = $this->getOwnUniqueArtefactInfo2($uid, 8, 1, 1);
+$largeJoker = $this->getOwnUniqueArtefactInfo2($uid, 8, 2, 0);
+$uniqueJoker = $this->getOwnUniqueArtefactInfo2($uid, 8, 3, 0);
+
+if (!empty($smallJoker)) {
+    $jokers = $smallJoker;
+}
+elseif (!empty($largeJoker)) {
+    $jokers = $largeJoker;
+}
+elseif (!empty($uniqueJoker)) {
+    $jokers = $uniqueJoker;
+}
+
+if (count($jokers) > 0)
+{
+    require_once(__DIR__ . '/sys_x8.php');
+
+    $jokerEffect = sys_x8::getOrCreateEffect(
+        $jokers['id'],
+        $uid,
+        $jokers['vref'],
+        $jokers['size']
+    );
+
+   $multiplicand = sys_x8::applyJokerEffect(
+    $jokerEffect,
+    $kind,
+    $multiplicand
+);
+}
+	    $multipliers = [1 => [6, 10, 4], 2 => [1/2, 1/3, 2/3], 3 => [7, 12, 5], 4 => [1/4, 1/10, 1/2], 5 => [1/2, 3/4, 1/2], 6 => [5, 10, 3], 7 => [6, 25, 3], 10 => [1.75, 2, 1.5], 11 => [1.75, 2, 1.5], 12 => [9, 10, 8], 13 => [3, 4, 2.5], 14 => [0.75, 0.90, 0.50]];
 
 	    $artefacts[] = count($this->getOwnUniqueArtefactInfo2($vid, $kind, 1, 1)); //Village effect
 	    $artefacts[] = count($this->getOwnUniqueArtefactInfo2($uid, $kind, 3, 0)); //Unique effect
@@ -7546,7 +7918,15 @@ References: User ID/Message ID, Mode
 	    list($wids, $artifactsArray) = $this->escape_input($wids, $artifactsArray);
 
 	    if(!is_array($wids)) $wids = [$wids];
-	    
+
+	    // Guard against empty or mismatched wids from a failed generateVillages call.
+	    // Inserting with missing wids would create corrupt artefact rows (vref=0/null)
+	    // that permanently satisfy areArtifactsSpawned() with no real villages behind them.
+	    if(empty($wids) || count($wids) < count($artifactsArray)) {
+	        error_log("addArtefacts: wids count (".count($wids).") < artifacts count (".count($artifactsArray).") — skipping insert");
+	        return false;
+	    }
+
 	    $time = time();
 	    
 	    foreach($artifactsArray as $index => $artifact){
@@ -7557,23 +7937,23 @@ References: User ID/Message ID, Mode
 		return mysqli_query($this->dblink, $q);
 	}
 
-	function getWWConstructionPlans($uid, $alliance = 0){
-	    list($uid, $alliance) = $this->escape_input((int) $uid, $alliance);
-	    
+	function getWWConstructionPlans($uid, $alliance = 0, $planType = 15){
+	    list($uid, $alliance, $planType) = $this->escape_input((int) $uid, $alliance, (int) $planType);
+
 	    if(!$alliance){
 	        $q = "SELECT
 			        Count(*) as Total
               FROM
                     ".TB_PREFIX."artefacts
               WHERE
-                    owner = ".$uid." AND type = 11 AND active = 1 AND del = 0";
+                    owner = ".$uid." AND type = ".$planType." AND active = 1 AND del = 0";
 	    }else{
 	        $q = "SELECT
 			        Count(*) as Total
               FROM
                     ".TB_PREFIX."artefacts AS artefacts
 			  INNER JOIN ".TB_PREFIX."users AS users
-					ON users.id != ".$uid." AND users.alliance = ".$alliance." AND artefacts.owner = users.id AND artefacts.type = 11
+					ON users.id != ".$uid." AND users.alliance = ".$alliance." AND artefacts.owner = users.id AND artefacts.type = ".$planType."
 		      WHERE
 					users.id > 4 AND artefacts.active = 1 AND artefacts.del = 0";
 	    }
@@ -7581,7 +7961,117 @@ References: User ID/Message ID, Mode
 	    $result = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
 	    return $result['Total'] > 0;
 	}
-	
+
+	/**
+	 * Returns true if the given village is the single, immune Natar Wonder
+	 * village (معجزة التتار). It is identified by being owned by the Natars,
+	 * flagged as a WW village (natar=1) and carrying the NATARWONDER name.
+	 * This village can never be attacked or conquered by players.
+	 *
+	 * @param int $wref The village reference
+	 * @return bool
+	 */
+	function isProtectedNatarWonder($wref){
+	    list($wref) = $this->escape_input((int) $wref);
+
+	    $q = "SELECT 1 FROM ".TB_PREFIX."vdata
+	          WHERE wref = ".$wref."
+	            AND owner = ".Artifacts::NATARS_UID."
+	            AND natar = 1
+	            AND name = '".mysqli_real_escape_string($this->dblink, NATARWONDER)."'
+	          LIMIT 1";
+
+	    return mysqli_num_rows(mysqli_query($this->dblink, $q)) > 0;
+	}
+
+	/**
+	 * Returns true if the village is an (unclaimed) Natar WW construction-plan
+	 * village — i.e. it still holds a small (type 15) or large (type 16) plan
+	 * artefact owned by the Natars. Such villages must not be chiefed; the plan
+	 * is meant to be taken by a hero. Identified by the artefact, not by a
+	 * localized village name, so it works in every language.
+	 *
+	 * @param int $wref The village reference
+	 * @return bool
+	 */
+	function isNatarPlanVillage($wref){
+	    list($wref) = $this->escape_input((int) $wref);
+
+	    $q = "SELECT 1 FROM ".TB_PREFIX."artefacts
+	          WHERE vref = ".$wref."
+	            AND owner = ".Artifacts::NATARS_UID."
+	            AND type IN (15, 16)
+	            AND del = 0
+	          LIMIT 1";
+
+	    return mysqli_num_rows(mysqli_query($this->dblink, $q)) > 0;
+	}
+
+	/**
+	 * Counts how many WW villages (natar=1) a player currently owns.
+	 * Used to enforce the one-WW-village-per-player limit.
+	 *
+	 * @param int $uid The user id
+	 * @return int
+	 */
+	function countOwnedWWVillages($uid){
+	    list($uid) = $this->escape_input((int) $uid);
+
+	    $q = "SELECT Count(*) as Total FROM ".TB_PREFIX."vdata WHERE owner = ".$uid." AND natar = 1";
+	    $result = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
+
+	    return (int) $result['Total'];
+	}
+
+	/**
+	 * Display-only village name. If the village currently holds a WW construction
+	 * plan (small = type 15 / large = type 16) its shown name is overridden at
+	 * runtime to indicate the blueprint tier. Nothing is persisted — vdata.name is
+	 * left untouched, so the player's real village name is preserved.
+	 *
+	 * @param int $wref The village reference
+	 * @param string|null $rawName Already-known vdata.name (avoids a lookup); fetched if null
+	 * @return string
+	 */
+	function villageDisplayName($wref, $rawName = null){
+	    list($wref) = $this->escape_input((int) $wref);
+	    if ($rawName === null) $rawName = $this->getVillageField($wref, "name");
+
+	    // Only relabel genuine (un-stolen) Natar plan villages. A plan carried home by a
+	    // raiding hero is owned by the player and sits in his own village — that village
+	    // must keep its real name, not be shown as a plan village.
+	    $q = "SELECT type FROM ".TB_PREFIX."artefacts
+	          WHERE vref = ".$wref." AND owner = ".Artifacts::NATARS_UID." AND type IN (15, 16) AND del = 0 LIMIT 1";
+	    $row = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
+
+	    if (!empty($row)) return ((int) $row['type'] === 16) ? PLANVILLAGE_LARGE : PLANVILLAGE;
+
+	    return $rawName;
+	}
+
+	/**
+	 * Batch variant of villageDisplayName: given a list of village refs, returns a
+	 * map [wref => plan type (15|16)] for those that currently hold a WW construction
+	 * plan. Lets callers resolve blueprint display names for many villages in a single
+	 * query (avoids an N+1 in the village switcher rendered on every page).
+	 *
+	 * @param int[] $wrefs
+	 * @return array<int,int> wref => plan type
+	 */
+	function getPlanTypesByVillages($wrefs){
+	    $ids = array_filter(array_map('intval', (array) $wrefs));
+	    if (empty($ids)) return [];
+
+	    $q = "SELECT vref, type FROM ".TB_PREFIX."artefacts
+	          WHERE vref IN (".implode(',', $ids).") AND owner = ".Artifacts::NATARS_UID." AND type IN (15, 16) AND del = 0";
+	    $res = mysqli_query($this->dblink, $q);
+
+	    $map = [];
+	    while ($row = mysqli_fetch_assoc($res)) $map[(int) $row['vref']] = (int) $row['type'];
+
+	    return $map;
+	}
+
     // no need to cache this method
 	function getOwnArtefactInfo($vref, $use_cache = true) {
 	    // load the data - type is irrelevant, since the method caches all data
@@ -7767,7 +8257,7 @@ References: User ID/Message ID, Mode
 	function areArtifactsSpawned($mode = false){
 		list($mode) = $this->escape_input($mode);
 		
-		$q = "SELECT 1 FROM ".TB_PREFIX."artefacts".($mode ? " WHERE type = 11" : "");
+		$q = "SELECT 1 FROM ".TB_PREFIX."artefacts".($mode ? " WHERE type = 15" : "");
 		$result = mysqli_fetch_array(mysqli_query($this->dblink, $q), MYSQLI_ASSOC);
 		return $result;
 	}
@@ -7814,7 +8304,7 @@ References: User ID/Message ID, Mode
               SUM(IF(size = '1', 1, 0)) small,
               SUM(IF(size = '2', 1, 0)) great,
               SUM(IF(size = '3', 1, 0)) `unique`
-              FROM " . TB_PREFIX . "artefacts WHERE owner = ".(int) $uid.($mode ? " AND active = 1 AND del = 0" : "");
+              FROM " . TB_PREFIX . "artefacts WHERE owner = ".(int) $uid." AND type NOT IN (15, 16)".($mode ? " AND active = 1 AND del = 0" : "");
 	    $result = mysqli_query($this->dblink, $q);
 	    return $this->mysqli_fetch_all($result)[0];
 	}
@@ -7856,11 +8346,19 @@ References: User ID/Message ID, Mode
 
         $artifact = $this->getOwnArtefactInfo($from);
         if (!empty($artifact)) return  "Treasury is full. Your hero could not claim the artefact";
-        
+
         $uid = $this->getVillageField($from, "owner");
         $vuid = $this->getVillageField($vref, "owner");
 
-        $artifact = $this->getOwnArtifactsSum($uid);
+        // Building plans (small=15, large=16) are separate from regular artifacts and
+        // are limited per-tier: a player may hold at most one plan of each type.
+        if ($type == 15 || $type == 16) {
+            if ($this->getWWConstructionPlans($uid, 0, $type) && $uid != $vuid) {
+                return "Max num. of building plans. Your hero could not claim the artefact";
+            }
+        }
+
+        $artifact = $this->getOwnArtifactsSum($uid); // type=15 and type=16 already excluded
 
         if ($artifact['totals'] < 3 || $uid == $vuid) {
             $DefenderFields = $this->getResourceLevel( $vref );

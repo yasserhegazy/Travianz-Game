@@ -1260,9 +1260,12 @@ I piani di costruzione sono conquistabili immediatamente quando compaiono sul se
 Ci sarà un conto alla rovescia nel gioco, che mostra l'ora esatta del rilascio, ".(5 / SPEED)." giorni prima del lancio. ");
 
 //Building Plans
-define("PLAN","Piano di costruzione antico");
-define("PLANVILLAGE","Meraviglia Planimetria");
+define("PLAN","Piano di costruzione piccolo");
+define("PLANVILLAGE","Piano piccolo Meraviglia");
 define("PLAN_DESC","Con questo antico piano di costruzione sarai in grado di costruire una Meraviglia fino al livello 50. Per costruire ulteriormente, la tua alleanza deve contenere almeno due piani.");
+define("PLAN_LARGE","Piano di costruzione grande");
+define("PLANVILLAGE_LARGE","Piano grande Meraviglia");
+define("PLAN_LARGE_DESC","Con questo grande piano di costruzione potrai costruire una Meraviglia dal livello 51 al 100. Non puoi possedere contemporaneamente il piano piccolo.");
 define("PLAN_INFO","<h1><b>Piani di costruzione delle meraviglie del mondo</b></h1>
 
 

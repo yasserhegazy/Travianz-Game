@@ -1493,9 +1493,12 @@ There will be a countdown in game, showing the exact time of the release, '.(5 /
 
 //Building Plans
 define('WILL_SPAWN_IN', 'will spawn in');
-define('PLAN', 'Ancient Construction Plan');
-define('PLANVILLAGE', 'WW Buildingplan');
+define('PLAN', 'Small Construction Plan');
+define('PLANVILLAGE', 'Small Wonder Construction Plan');
 define('PLAN_DESC', 'With this ancient construction plan you will able to build World Wonder to level 50. to build further, your alliance must hold at least two plans.');
+define('PLAN_LARGE', 'Large Construction Plan');
+define('PLANVILLAGE_LARGE', 'Large Wonder Construction Plan');
+define('PLAN_LARGE_DESC', 'With this large construction plan you will be able to build a World Wonder from level 51 to 100. You may not hold a small construction plan at the same time.');
 define('PLAN_INFO', '<h1><b>World Wonder Construction Plans</b></h1>
 
 

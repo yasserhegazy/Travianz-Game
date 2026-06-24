@@ -35,7 +35,7 @@ if(isset($_POST['action']) && $_POST['action'] == 'addSlot' && isset($_POST['lid
     elseif(($_POST['x'] == "" || $_POST['y'] == "") && empty($_POST['target_id'])) $errormsg = "Enter the correct coordinates.";	
     elseif($oasistype == 0 && $vdata == 0) $errormsg = "There is no village on those coordinates.";   	
     elseif($troops == 0) $errormsg = "No troops has been selected.";   	
-    elseif($database->hasBeginnerProtection($Wref) == 1) $errormsg = "Player under protection.";  
+    elseif($database->hasBeginnerProtection($Wref) == 1) $errormsg = "اللاعب تحت الحماية.";  
     elseif($_POST['target_id'] == $FLData['wref'] || $vdata['wref'] == $FLData['wref']) $errormsg = "You can't attack the same village you're sending troops from.";
     elseif($session->gold < 5) $errormsg = (defined('LANG') && LANG === 'ar') ? "ليس لديك ذهب كافٍ. إضافة قرية يكلف 5 ذهب." : "Not enough gold. Adding a village costs 5 gold.";
     else

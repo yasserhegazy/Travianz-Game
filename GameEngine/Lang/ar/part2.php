@@ -347,7 +347,7 @@ define('FNEWVILLAGE', 'تأسيس قرية جديدة');
 define('CULTUREPOINT', 'النقاط الحضارية');
 define('BUILDRALLY', 'بناء نقطة التجمع');
 define('SETTLERSAVAIL', 'المستوطنين المتاحين');
-define('BEGINPRO', 'حماية المبتدئين');
+define('BEGINPRO', 'تحت الحماية');
 define('SENDMERC', 'ارسال تجار');
 define('BAN', 'اللاعب محظور');
 define('BUILDMARKET', 'بناء السوق');

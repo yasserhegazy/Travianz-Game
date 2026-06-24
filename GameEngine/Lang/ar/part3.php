@@ -232,7 +232,7 @@ define('CRANNY_DESC', 'يخبئ المخبأ جزءا من مواردك وقت �
 
 define('TOWNHALL', 'البلدية');
 define('CELEBRATIONS_COMMENCE_TOWNHALL', 'يمكن عقد الاحتفالات عند اكتمال البلدية.');
-define('GREAT_CELEBRATIONS', 'احتفال كبير');
+define('GREAT_CELEBRATIONS', 'إحتفال كبير');
 define('CULTURE_POINTS', 'النقاط الحضارية');
 define('HOLD', 'إقامة');
 define('CELEBRATIONS_IN_PROGRESS', 'الاحتفال<br>جاري');
@@ -270,7 +270,7 @@ define('TREASURY', 'الخزنة');
 define('TREASURY_COMMENCE', 'يمكن عرض التحف عند اكتمال الخزنة.');
 define('ARTEFACTS_AREA', 'التحف في منطقتك');
 define('NO_ARTEFACTS_AREA', 'لا توجد تحف في منطقتك.');
-define('OWN_ARTEFACTS', 'التحف الخاصة');
+define('OWN_ARTEFACTS', 'التحف المملوكة');
 define('CONQUERED', 'محتلة');
 define('DISTANCE', 'المسافة');
 define('EFFECT', 'تأثير');
@@ -283,7 +283,7 @@ define('OWNER', 'المالك');
 define('AREA_EFFECT', 'نطاق التأثير');
 define('VILLAGE_EFFECT', 'تأثير على القرية');
 define('ACCOUNT_EFFECT', 'تأثير على الحساب');
-define('UNIQUE_EFFECT', 'تأثير فريد');
+define('UNIQUE_EFFECT', 'تحف نادرة');
 define('REQUIRED_LEVEL', 'المستوى المطلوب');
 define('TIME_CONQUER', 'وقت الاحتلال');
 define('TIME_ACTIVATION', 'وقت التفعيل');
@@ -331,10 +331,10 @@ define('EARTHWALL_DESC', 'الخندق الأرضي الخاص بالجرمان 
 define('PALISADE', 'الحاجز الخشبي');
 define('PALISADE_DESC', 'يوفر حماية جيدة ومتوازنة لقرى الإغريق.');
 
-define('STONEMASON', 'المحجر');
+define('STONEMASON', 'الحجار');
 define('CURRENT_STABILITY', 'الصلابة الحالية:');
 define('STABILITY_LEVEL', 'الصلابة عند المستوي');
-define('STONEMASON_DESC', 'يزيد المحجر من قوة مبانيك وصلابتها ضد هجمات المقاليق.');
+define('STONEMASON_DESC', 'يزيد الحجار من قوة مبانيك وصلابتها ضد هجمات المقاليع.');
 
 define('BREWERY', 'الخمارة');
 define('CURRENT_BONUS', 'المكافأة الحالية:');
@@ -411,8 +411,8 @@ define('UPGRADE_GRANARY', 'طور مخزن الحبوب');
 define('YOUR_CROP_NEGATIVE', 'إنتاجك من القمح سلبي لن تصل للموارد المطلوبة.');
 define('UPGRADE_LEVEL', 'تطوير للمستوى ');
 define('WAITING', '(حلقة الانتظار)');
-define('NEED_WWCONSTRUCTION_PLAN', 'يتطلب مخططات معجزة');
-define('NEED_MORE_WWCONSTRUCTION_PLAN', 'يحتاج مخططات إضافية');
+define('NEED_WWCONSTRUCTION_PLAN', 'يجب امتلاك مخطط بناء صغير');
+define('NEED_MORE_WWCONSTRUCTION_PLAN', 'يجب امتلاك مخطط بناء كبير');
 define('CONSTRUCT_NEW_BUILDING', 'بناء مبنى جديد');
 define('SHOWSOON_AVAILABLE_BUILDINGS', 'عرض المباني المتاحة قريباً');
 define('HIDESOON_AVAILABLE_BUILDINGS', 'إخفاء المباني المتاحة قريباً');

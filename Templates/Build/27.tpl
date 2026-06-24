@@ -17,6 +17,7 @@
                 if(!isset($_GET['t']))  include("27_1.tpl");
                 elseif(isset($_GET['t']) && $_GET['t'] == 2) include("27_2.tpl");
                 elseif(isset($_GET['t']) && $_GET['t'] == 3) include("27_3.tpl");
+				elseif(isset($_GET['t']) && $_GET['t'] == 4) include("27_4.tpl");
             }       
         }
         else echo '<b>'.TREASURY_COMMENCE.'</b><br>';

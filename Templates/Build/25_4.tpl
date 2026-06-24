@@ -41,7 +41,7 @@ echo '
 <td class="vil"><a href="karte.php?d='.${'slot'.$i}.'&c='.$generator->getMapCheck(${'slot'.$i}).'">'.$vname.'</a></td>
 <td class="pla"><a href="spieler.php?uid='.$owner.'">'.$ownername.'</a></td>
 <td class="ha">'.$pop.'</td>
-<td class="aligned_coords"><div class="cox">('.$coor['x'].'</div><div class="pi">|</div><div class="coy">'.$coor['y'].')</div></td>
+<td class="aligned_coords">(<span class="coordX">'.$coor['x'].'</span><span style="color:#000;font-weight:normal;">|</span><span class="coordY">'.$coor['y'].'</span>)</td>
 <td class="dat">'.date('d.m.Y',$vcreated).'</td>
 </tr>';
 		}

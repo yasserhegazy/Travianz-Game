@@ -59,16 +59,110 @@ $coor['y']=$form->getValue("y");
 }
 ?>
         <td class="target">
-            <span><?php echo (defined('LANG') && LANG === 'ar') ? 'س:' : 'x:'; ?></span>
-            <input class="text" name="x" value="<?php echo $coor['x']; ?>" maxlength="4" type="text">
-            <span><?php echo (defined('LANG') && LANG === 'ar') ? 'ص:' : 'y:'; ?></span>
-            <input class="text" name="y" value="<?php echo $coor['y']; ?>" maxlength="4" type="text">
-        </td>
+    <span class="coordX"><?php echo (defined('LANG') && LANG == 'ar') ? 'X:' : 'x:'; ?></span>
+    <input class="text coordXInput" name="x" value="<?php echo $coor['x']; ?>" maxlength="4" type="text">
+
+    <span class="coordY"><?php echo (defined('LANG') && LANG == 'ar') ? 'Y:' : 'y:'; ?></span>
+    <input class="text coordYInput" name="y" value="<?php echo $coor['y']; ?>" maxlength="4" type="text">
+</td>
     </tr>
 </tbody></table>
 
-       <button value="ok" name="s1" id="btn_ok" class="trav_buttons" alt="OK" onclick="this.disabled=true;this.form.submit();" /> <?php echo (defined('LANG') && LANG === 'ar') ? 'تم' : 'Ok'; ?> </button>
+       <button value="ok" name="s1" id="btn_ok" class="trav_buttons" alt="OK" onclick="this.disabled=true;this.form.submit();" /> <?php echo (defined('LANG') && LANG === 'ar') ? 'إرسال' : 'Ok'; ?> </button>
     </form>
-<p class="error"><?php echo $form->getError("error"); ?></p>
+<p class="error" style="color:#c00000; font-weight:bold;">
+    <?php echo $form->getError("error"); ?>
+<?php
+$showRemoveProtectionBox = false;
+
+if($database->hasBeginnerProtection($village->wid)) {
+    $targetId = 0;
+
+    if(isset($_GET['z'])) {
+        $targetId = (int)$_GET['z'];
+    } elseif(isset($_GET['d'])) {
+        $targetId = (int)$_GET['d'];
+    }
+
+    if($targetId > 0) {
+        $isOasisTarget = $database->isVillageOases($targetId);
+
+        if(!$isOasisTarget) {
+            $targetOwner = (int)$database->getVillageField($targetId, "owner");
+
+            if($targetOwner > 0 && $targetOwner != (int)$session->uid) {
+                $showRemoveProtectionBox = true;
+            }
+        } else {
+            $oasisConquered = (int)$database->getOasisField($targetId, "conqured");
+
+            if($oasisConquered > 0) {
+                $oasisOwner = (int)$database->getVillageField($oasisConquered, "owner");
+
+                if($oasisOwner > 0 && $oasisOwner != (int)$session->uid) {
+                    $showRemoveProtectionBox = true;
+                }
+            }
+        }
+    }
+}
+?>
+<?php
+$errorMsg = $form->getError("error");
+
+if(
+    $database->hasBeginnerProtection($village->wid)
+    && (
+        strpos($errorMsg, 'الحماية') !== false
+        || strpos($errorMsg, 'protection') !== false
+    )
+) {
+    $showRemoveProtectionBox = true;
+}
+?>
+    <?php if($showRemoveProtectionBox) { ?>
+<div id="removeProtectionBox" style="text-align:center; margin:12px 0; font-weight:bold;">
+    <div style="color:#c00000;">
+        يجب إزالة الحماية أولاَ.
+    </div>
+
+    <input type="password" id="removeProtectPassword" placeholder="كلمة المرور" style="width:130px;">
+    <button type="button" onclick="removeProtectionInline()">إزالة الحماية</button>
+
+    <div id="removeProtectResult" style="margin-top:8px;"></div>
+</div>
+
+<script>
+function removeProtectionInline() {
+    var pass = document.getElementById('removeProtectPassword').value;
+    var result = document.getElementById('removeProtectResult');
+
+    if (!pass) {
+        result.style.color = '#c00000';
+        result.innerHTML = 'اكتب كلمة المرور أولاً.';
+        return;
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', 'ajax_remove_protection.php', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+    xhr.onload = function() {
+        if (xhr.responseText.trim() === 'OK') {
+            result.style.color = '#008000';
+            result.innerHTML = 'تمت إزالة الحماية، يمكنك الآن الهجوم.';
+            document.getElementById('removeProtectionBox').innerHTML =
+'✅ تمت إزالة الحماية، يمكنك الآن الهجوم.';
+        } else {
+            result.style.color = '#c00000';
+            result.innerHTML = xhr.responseText;
+        }
+    };
+
+    xhr.send('password=' + encodeURIComponent(pass));
+}
+</script>
+<?php } ?>
+</p>
 </div>
 

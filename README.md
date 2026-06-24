@@ -20,7 +20,7 @@ If you are upgrading from an older installation, do a fresh install and migrate 
 ## Quick Start (Docker)
 
 ```bash
-git clone https://github.com/YOUR_USER_NAME/TravianZ.git
+git clone https://github.com/Shadowss/TravianZ.git
 cd TravianZ
 cp .env.example .env
 docker compose up -d
@@ -28,7 +28,7 @@ docker compose up -d
 
 Then open:
 
-- `http://localhost:8080/install` (The installer will automatically set up the correct permissions and initialize the database).
+- `http://localhost:8080/install`
 
 Detailed container guide: [DOCKER_README.md](DOCKER_README.md)
 

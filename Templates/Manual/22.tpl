@@ -4,8 +4,8 @@
     <li><a href="manual.php?typ=1&amp;s=12"><?php echo (defined('LANG') && LANG === 'ar') ? 'مقاتل برمح' : 'Spearman'; ?></a></li>
     <li><a href="manual.php?typ=1&amp;s=13"><?php echo (defined('LANG') && LANG === 'ar') ? 'مقاتل بفأس' : 'Axeman'; ?></a></li>
     <li><a href="manual.php?typ=1&amp;s=14"><?php echo (defined('LANG') && LANG === 'ar') ? 'كشاف' : 'Scout'; ?></a></li>
-    <li><a href="manual.php?typ=1&amp;s=15"><?php echo (defined('LANG') && LANG === 'ar') ? 'مقاتل نبال' : 'Paladin'; ?></a></li>
-    <li><a href="manual.php?typ=1&amp;s=16"><?php echo (defined('LANG') && LANG === 'ar') ? 'فرسان تيوتون' : 'Teutonic Knight'; ?></a></li>
+    <li><a href="manual.php?typ=1&amp;s=15"><?php echo (defined('LANG') && LANG === 'ar') ? 'مقاتل القيصر' : 'Paladin'; ?></a></li>
+    <li><a href="manual.php?typ=1&amp;s=16"><?php echo (defined('LANG') && LANG === 'ar') ? 'فرسان الجرمان' : 'Teutonic Knight'; ?></a></li>
     <li><a href="manual.php?typ=1&amp;s=17"><?php echo (defined('LANG') && LANG === 'ar') ? 'محطمة أبواب' : 'Ram'; ?></a></li>
     <li><a href="manual.php?typ=1&amp;s=18"><?php echo (defined('LANG') && LANG === 'ar') ? 'مقلاع' : 'Catapult'; ?></a></li>
     <li><a href="manual.php?typ=1&amp;s=19"><?php echo (defined('LANG') && LANG === 'ar') ? 'زعيم' : 'Chief'; ?></a></li>

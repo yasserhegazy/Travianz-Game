@@ -1,9 +1,34 @@
 <?php
 include_once("GameEngine/Artifacts.php");
+include_once("GameEngine/sys_x8.php");
 
 $ownArtifacts = $database->getOwnArtefactsInfo($session->uid);
 $wref = $village->wid;
 $coor = $database->getCoor($wref);
+
+// Return an owned artifact or building plan to the Natars for 2000 gold (mirrors the
+// joker reroll flow below). Regular artifacts taken by conquering a Natar artifact
+// village are restored in place; plans (and anything sitting in the player's capital)
+// are carried in the player's OWN village (raided home), so they must NOT revert it —
+// they go back to the Natars as a fresh village instead.
+if (isset($_GET['returnartefact']) && (int)$_GET['returnartefact'] > 0 && $session->gold >= 2000) {
+    $returnId = (int)$_GET['returnartefact'];
+    foreach ($ownArtifacts as $artifactToReturn) {
+        if ((int)$artifactToReturn['id'] === $returnId) {
+            $database->updateUserField($session->uid, 'gold', $session->gold - 2000, 1);
+            $artifact = new Artifacts();
+            $isPlan      = in_array((int)$artifactToReturn['type'], [15, 16], true);
+            $isInCapital = (int)$database->getVillageField($artifactToReturn['vref'], 'capital') === 1;
+            if ($isPlan || $isInCapital) {
+                $artifact->returnArtifactToNatars($artifactToReturn);
+            } else {
+                $artifact->restoreArtifactVillageToNatars($artifactToReturn);
+            }
+            header("Location: build.php?id=" . $id);
+            exit;
+        }
+    }
+}
 
 ?>
 <body>
@@ -35,69 +60,79 @@ else
                 <a href="build.php?id='.$id . '&show='.$ownArtifact['id'].'">' . $ownArtifact['name'] . '</a> <span class="bon">' . $ownArtifact['effect'] . '</span>
                 <div class="info">
                     Treasury <b>'.$ownArtifactInfo['requiredLevel'].'</b>, Effect <b>'.$ownArtifactInfo['effectInfluence'].'</b>
-                </div>
-              </td>';
+                </div>';
+				if ((int)$ownArtifact['type'] == 8) {
+    $jokerSize = isset($ownArtifact['size']) ? (int)$ownArtifact['size'] : 1;
+
+    $jokerEffect = sys_x8::getOrCreateEffect(
+        $ownArtifact['id'],
+        $session->uid,
+        $ownArtifact['vref'],
+        $jokerSize
+    );
+
+    echo '<div class="info" style="margin-top:4px;color:#8B0000;">
+        <b>مفعول الجوكر الحالي:</b> '.$jokerEffect['effect_name'].' 
+        <span>('.$jokerEffect['rarity'].')</span>
+    </div>';
+	if (isset($_GET['rerolljoker']) && $session->gold >= 100) {
+
+    $database->updateUserField(
+        $session->uid,
+        'gold',
+        $session->gold - 100,
+        1
+    );
+
+    $artefactId = (int)$_GET['rerolljoker'];
+
+    foreach ($ownArtifacts as $artifactCheck) {
+
+        if (
+            (int)$artifactCheck['id'] == $artefactId &&
+            (int)$artifactCheck['type'] == 8
+        ) {
+
+            $jokerSize = isset($artifactCheck['size'])
+                ? (int)$artifactCheck['size']
+                : 1;
+
+            sys_x8::rerollEffect(
+                $artefactId,
+                $session->uid,
+                $artifactCheck['vref'],
+                $jokerSize
+            );
+
+            header("Location: build.php?id=".$id);
+            exit;
+        }
+    }
+}
+
+echo '
+<div style="margin-top:6px;">
+<a href="?id='.$id.'&rerolljoker='.$ownArtifact['id'].'">
+تغيير التأثير (100 ذهب)
+</a>
+</div>';
+        } // close the joker (type==8) block — only jokers get the reroll link
+
+        $returnLabel = in_array((int)$ownArtifact['type'], [15, 16], true) ? 'اعادة المخطط (2000 ذهب)' : 'اعادة التحفة (2000 ذهب)';
+        echo '
+<div style="margin-top:6px;">
+<a href="build.php?id='.$id.'&returnartefact='.$ownArtifact['id'].'">
+'.$returnLabel.'
+</a>
+</div>';
+        echo '</td>';
         echo '<td class="pla"><a href="karte.php?d=' . $ownArtifact['vref'] . '&c=' . $generator->getMapCheck($ownArtifact['vref']) . '">' . $database->getVillageField($ownArtifact['vref'], "name") . '</a></td>';
         echo '<td class="dist">'.date("d.m.Y H:i", $ownArtifact['conquered']) . '</td></tr>';
     }
 }
-
 ?>
 </tbody>
 </table>
 
-<table id="near" cellpadding="1" cellspacing="1">
-<thead>
-<tr>
-<th colspan="4"><?php echo ARTEFACTS_AREA; ?></th>
-</tr>
 
-<tr>
-<td></td>
-
-<td><?php echo NAME; ?></td>
-
-<td><?php echo PLAYER; ?></td>
-
-<td><?php echo DISTANCE; ?></td>
-</tr>
-</thead>
-
-<tbody>
-<?php
-$artifacts = $database->getArtifactsBysize([1, 2, 3]);
-if(count($artifacts) == 0) echo '<td colspan="4" class="none">'.NO_ARTEFACTS_AREA.'</td>';
-else
-{
-    $rows = [];
-    foreach($artifacts as $artifact){
-        $coordinates = $database->getCoor($artifact['vref']);
-
-        $distance = $database->getDistance($village->coor['x'], $village->coor['y'], $coordinates['x'], $coordinates['y']);
-        $rows[(string)$distance] = $artifact;  
-    }
-
-    ksort($rows);
-
-    foreach($rows as $distance => $row) {
-        echo '<tr>
-                <td class="icon"><img class="artefact_icon_'.$row['type'].'" src="img/x.gif" alt="" title=""></td>
-                <td class="nam">
-                <a href="build.php?id='.$id.'&show='.$row['id'].'">'.$row['name'].'</a> <span class="bon">'.$row['effect'].'</span>
-              <div class="info">';
-        
-        $artifactInfo = Artifacts::getArtifactInfo($row);
-        
-        echo '<div class="info">'.TREASURY.' <b>'.$artifactInfo['requiredLevel'] . '</b>, '.EFFECT.' <b>'.$artifactInfo['effectInfluence'].'</b>
-              </div></td><td class="pla">
-              <a href="karte.php?d='.$row['vref'].'&c='.$generator->getMapCheck($row['vref']).'">'.$database->getUserField($row['owner'], "username", 0).'</a>
-              </td>
-                <td class="dist">'.$distance.'</td>
-              </tr>';
-    }
-}
-
-?>
-</tbody>
-</table>
 </div>

@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
+ini_set('display_errors', 1);
 #################################################################################
 ##              -= YOU MAY NOT REMOVE OR CHANGE THIS NOTICE =-                 ##
 ## --------------------------------------------------------------------------- ##
@@ -60,15 +61,16 @@ class Building {
                 }
             }
 
-            //Get our WW construction plans
-            $userHasWWConstructionPlans = $database->getWWConstructionPlans($session->uid);
-            
-            //Get ally WW construction plans
-            $allyHasWWConstructionPlans = $session->alliance > 0 ? $database->getWWConstructionPlans($session->uid, $session->alliance) : false;
-            
+            //Two-tier blueprint system:
+            // - Levels 1-50  require a SMALL construction plan (type 15)
+            // - Levels 51-100 require a LARGE construction plan (type 16) AND the player
+            //   must NOT still hold a small plan (the blueprint swap requirement)
+            $userHasSmallPlan = $database->getWWConstructionPlans($session->uid, 0, 15);
+            $userHasLargePlan = $database->getWWConstructionPlans($session->uid, 0, 16);
+
             //Check if we should allow building the WW this high
-            if($wwHighestLevelFound < 50) $cached = $userHasWWConstructionPlans;
-            else $cached = $userHasWWConstructionPlans && $allyHasWWConstructionPlans;
+            if($wwHighestLevelFound < 50) $cached = $userHasSmallPlan;
+            else $cached = $userHasLargePlan && !$userHasSmallPlan;
         }
         
         return $cached;
@@ -568,10 +570,10 @@ class Building {
             case 37: return $this->getTypeLevel(15) >= 3 && $this->getTypeLevel(16) >= 1 && !$isBuilt;
 
             // great warehouse can only be built with artefact or in Natar villages
-            case 38: return $this->getTypeLevel(15) >= 10 && (!$isBuilt || $this->getTypeLevel($id) == 20) && (GREAT_WHS || $village->natar == 1 || count($database->getOwnUniqueArtefactInfo2($village->wid, 6, 1, 1)) || count($database->getOwnUniqueArtefactInfo2($session->uid, 6, 2, 0)));
+            case 38: return $this->getTypeLevel(15) >= 10 && (!$isBuilt || $this->getTypeLevel($id) == 20) && (TRUE || $village->natar == 1 || count($database->getOwnUniqueArtefactInfo2($village->wid, 6, 1, 1)) || count($database->getOwnUniqueArtefactInfo2($session->uid, 6, 2, 0)));
 
             // great granary can only be built with artefact or in Natar villages
-            case 39: return $this->getTypeLevel(15) >= 10 && (!$isBuilt || $this->getTypeLevel($id) == 20) && (GREAT_WHS || $village->natar == 1 || count($database->getOwnUniqueArtefactInfo2($village->wid, 6, 1, 1)) || count($database->getOwnUniqueArtefactInfo2($session->uid, 6, 2, 0)));
+            case 39: return $this->getTypeLevel(15) >= 10 && (!$isBuilt || $this->getTypeLevel($id) == 20) && (TRUE || $village->natar == 1 || count($database->getOwnUniqueArtefactInfo2($village->wid, 6, 1, 1)) || count($database->getOwnUniqueArtefactInfo2($session->uid, 6, 2, 0)));
             
             case 40: return $this->allowWwUpgrade();
             case 41: return $this->getTypeLevel(16) >= 10 && $this->getTypeLevel(20) == 20 && $session->tribe == 1 && !$isBuilt;

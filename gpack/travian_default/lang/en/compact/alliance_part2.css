@@ -27,7 +27,9 @@ div.alliance div#submenu img.btn_def, div.statistics div#submenu img.btn_def {
 div.alliance div#submenu img.btn_off, div.statistics div#submenu img.btn_off {
     background-image: url("../../../img/s/off.gif");
 }
-
+div.alliance div#submenu img.btn_loot, div.statistics div#submenu img.btn_loot {
+    background-image: url("../../../img/s/loot.gif");
+}
 div.alliance div.chatHeader {
     background-image: url("../../../img/a/c2.gif");
     background-repeat: repeat;

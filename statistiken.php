@@ -121,7 +121,7 @@ if(isset($_GET['newdid'])) {
  <?php if(WW == true) { ?>
  | <a href="statistiken.php?id=99" <?php if(isset($_GET['id']) && $_GET['id'] == 99) { echo "class=\"selected \""; } ?>>WW</a>
  <?php } ?>
- | <a href="statistiken.php?id=100" <?php if(isset($_GET['id']) && $_GET['id'] == 100) { echo "class=\"selected \""; } ?>><?php echo defined('HALL_OF_FAME') ? HALL_OF_FAME : 'Hall of Fame'; ?></a>
+ | <a href="statistiken.php?id=100" <?php if(isset($_GET['id']) && $_GET['id'] == 100) { echo "class=\"selected \""; } ?>><?php echo (defined('LANG') && LANG === 'ar') ? 'سجل الفائزين' : 'Winners Record'; ?></a>
 </div>
 <?php
 if(isset($_GET['id'])) {
@@ -132,6 +132,12 @@ if(isset($_GET['id'])) {
 		case 32:
 			include("Templates/Ranking/player_defend.tpl");
 			break;
+		case 40:
+            include("Templates/Ranking/player_loot.tpl");
+            break;
+		case 44:
+            include("Templates/Ranking/alliance_loot.tpl");
+            break;
 		case 7:
 			include("Templates/Ranking/player_top10.tpl");
 			break;
@@ -172,7 +178,7 @@ if(isset($_GET['id'])) {
 			include("Templates/Ranking/ww.tpl");
 			break;
 		case 100:
-			include("Templates/Ranking/hall_of_fame.tpl");
+			include("Templates/Ranking/winner_history.tpl");
 			break;
 	}
 }

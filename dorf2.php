@@ -14,6 +14,7 @@ $start_timer = $generator->pageLoadTimeStart();
 use App\Utils\AccessLogger;
 
 include_once("GameEngine/Village.php");
+include_once("GameEngine/Automation.php");
 AccessLogger::logRequest();
 
 if(isset($_GET['newdid'])) {
@@ -22,7 +23,10 @@ if(isset($_GET['newdid'])) {
 	header("Location: ".$_SERVER['PHP_SELF']);
 	exit;
 }
-else $building->procBuild($_GET);
+else {
+    new Automation();
+    $building->procBuild($_GET);
+}
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

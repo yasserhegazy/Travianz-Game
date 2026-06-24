@@ -18,7 +18,7 @@
 // (0) = disabled
 define("ERROR_REPORT","%ERRORREPORT%");
 %ERROR%
-define('AUTOMATION_LOCK_FILE_NAME', 'var/automation.lck');
+define('AUTOMATION_LOCK_FILE_NAME', 'automation.lck');
 
 //////////////////////////////////
 // *****  SERVER SETTINGS  *****//
@@ -120,8 +120,12 @@ define("NATARS_UNITS",%NATARS_UNITS%);
 
 // ***** Natars Spawn Time
 define("NATARS_SPAWN_TIME",%NATARS_SPAWN_TIME%); 
-define("NATARS_WW_SPAWN_TIME",%NATARS_WW_SPAWN_TIME%); 
-define("NATARS_WW_BUILDING_PLAN_SPAWN_TIME",%NATARS_WW_BUILDING_PLAN_SPAWN_TIME%); 
+define("NATARS_WW_SPAWN_TIME",%NATARS_WW_SPAWN_TIME%);
+define("NATARS_WW_BUILDING_PLAN_SPAWN_TIME",%NATARS_WW_BUILDING_PLAN_SPAWN_TIME%);
+// Natar Wonder rises from level 0 to 100 over a flat 72-hour window (one level every
+// 72h/100 = 2592s). NOT SPEED-scaled — measured in real calendar time like the other
+// Natar timings, so players always get the spec's 3-day race (spawn day 20, finish day 23).
+define("NATARS_WW_BUILD_INTERVAL", (int) max(1, round((72 * 3600) / 100))); // seconds per WW level (flat 72h over 100 levels)
 
 // ***** Nature troops regeneration time
 define("NATURE_REGTIME",%NATURE_REGTIME%); 
@@ -190,8 +194,6 @@ define("PLUS_PRODUCTION",%PLUS_PRODUCTION%);
 define("MEDALINTERVAL",%MEDALINTERVAL%);
 // ***** Great Workshop
 define("GREAT_WKS",%GREAT_WKS%);
-// ***** Great Warehouse/Granary
-define("GREAT_WHS",false);
 // ***** Tourn threshold
 define("TS_THRESHOLD",%TS_THRESHOLD%);  
 

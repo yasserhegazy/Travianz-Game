@@ -27,11 +27,48 @@ if(isset($_GET['t']) == 99 && isset($_POST['action']) == 'addList' && !empty($_P
 
 // --- Auto-create default farmlist if user has none ---
 if(!$database->getVilFarmlist($session->uid)) {
-    $defaultName = (defined('LANG') && LANG === 'ar') ? 'قائمة افتراضية' : 'Default List';
+    $defaultName = (defined('LANG') && LANG === 'ar') ? 'القائمة الأساسية' : 'Default List';
     $database->createFarmList($village->wid, $session->uid, $defaultName);
 }
+$protectedSlots = isset($_SESSION['raidlist_protected_slots']) ? array_map('intval', $_SESSION['raidlist_protected_slots']) : [];
+$blockedCount = isset($_SESSION['raidlist_protection_blocked'])
+    ? (int)$_SESSION['raidlist_protection_blocked']
+    : 0;
+	$protectedSlots = isset($_SESSION['raidlist_protected_slots']) ? array_map('intval', $_SESSION['raidlist_protected_slots']) : [];
+$blockedCount = isset($_SESSION['raidlist_protection_blocked'])
+    ? (int)$_SESSION['raidlist_protection_blocked']
+    : 0;
 
+$blockedBySender = isset($_SESSION['raidlist_blocked_sender']) ? (int)$_SESSION['raidlist_blocked_sender'] : 0;
+$blockedByTarget = isset($_SESSION['raidlist_blocked_target']) ? (int)$_SESSION['raidlist_blocked_target'] : 0;
+$successCount = isset($_SESSION['raidlist_success_count']) ? (int)$_SESSION['raidlist_success_count'] : 0;
 ?>
+<?php if(isset($_SESSION['raidlist_result_ready']) && ($successCount > 0 || $blockedCount > 0)){ ?>
+<div class="farmlistResultBox">
+
+    <?php if($successCount > 0){ ?>
+        <div class="farmlistResultLine success">
+            <img class="att2" src="img/x.gif" alt="">
+            <span>تم إرسال <?php echo $successCount; ?> هجوم بنجاح</span>
+        </div>
+    <?php } ?>
+
+    <?php if($blockedBySender > 0){ ?>
+        <div class="farmlistResultLine failed">
+            <span class="failIcon">❌</span>
+            <span>فشل إرسال <?php echo $blockedBySender; ?> هجوم لأنك تحت الحماية</span>
+        </div>
+    <?php } ?>
+
+    <?php if($blockedByTarget > 0){ ?>
+        <div class="farmlistResultLine failed">
+            <span class="failIcon">❌</span>
+            <span>فشل إرسال <?php echo $blockedByTarget; ?> هجوم لأن الهدف تحت الحماية</span>
+        </div>
+    <?php } ?>
+
+</div>
+<?php } ?>
 <form action="build.php?id=39&t=99&action=startRaid" method="post" name="msg">
 <input type="hidden" name="action" value="startRaid">
 <?php 
@@ -61,17 +98,21 @@ while($row = mysqli_fetch_array($sql)){
 
     <div class="clear"></div>
     <div class="addSlot" style="margin-bottom: 10px; display:flex; justify-content:flex-end; align-items:center;">
-        <button type="button" class="trav_buttons" onclick="window.location.href = '?gid=16&t=99&action=addraid&lid=<?php echo $lid; ?>';"><?php echo (defined('LANG') && LANG === 'ar') ? 'إضافة مزرعة' : 'Add Farm'; ?></button>
-        <span style="font-size: 11px; margin: 0 5px;">(5 <img src="img/x.gif" class="gold" alt="Gold">)</span>
+        <button type="button" class="trav_buttons farmBtn" onclick="window.location.href = '?gid=16&t=99&action=addraid&lid=<?php echo $lid; ?>';">
+    إضافة مزرعة
+</button>
+<span class="goldCost">
+    5 <img src="img/x.gif" class="gold" alt="Gold">
+</span>
+        
     </div>
     <table id="raidList" cellpadding="1" cellspacing="1">
         <thead>
             <tr>
                 <td></td>
                 <td><?php echo (defined('LANG') && LANG === 'ar') ? 'القرية' : 'Village'; ?></td>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'السكان' : 'Pop'; ?></td>
-                <td><?php echo (defined('LANG') && LANG === 'ar') ? 'المسافة' : 'Distance'; ?></td>
                 <td><?php echo (defined('LANG') && LANG === 'ar') ? 'القوات' : 'Troops'; ?></td>
+				<td><?php echo (defined('LANG') && LANG === 'ar') ? 'المسافة' : 'Distance'; ?></td>                
                 <td><?php echo (defined('LANG') && LANG === 'ar') ? 'أخر هجوم' : 'Last raid'; ?></td>
                 <td></td>
             </tr>
@@ -81,13 +122,15 @@ while($row = mysqli_fetch_array($sql)){
 <?php
 $sql2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."raidlist WHERE lid = ".(int) $lid." ORDER BY sort_order ASC, distance ASC");
 $query2 = mysqli_num_rows($sql2);
-if(!$query2) echo '<td class="noData" colspan="7">'.NO_VILLAGES.'</td>';
+if(!$query2) echo '<td class="noData" colspan="6">'.NO_VILLAGES.'</td>';
 else
 {
 	while($row = mysqli_fetch_array($sql2)){
 		$id = $row['id'];
 		$lid = $row['lid'];
 		$towref = $row['towref'];
+		$slotWasProtected = in_array((int)$id, $protectedSlots);
+        $targetIsProtected = $database->hasBeginnerProtection($towref);
 		$x = $row['x'];
 		$y = $row['y'];
 		$distance = $row['distance'];
@@ -103,7 +146,9 @@ else
 			</td>
             <td class="village">
             <?php
-
+           if ($slotWasProtected) {
+    echo '<span style="color:#c00000;font-weight:bold;font-size:16px;margin:0 4px;" title="فشل الهجوم: القرية تحت الحماية">❌</span>';
+}
             $attacks = $database->getMovement(3, $towref, 1);      
             if (($attacksCount = count($attacks)) > 0) {
             	foreach($attacks as $attack){
@@ -118,30 +163,29 @@ else
                     if($oasistype != 0) $thisVillageName = $database->getOasisField($towref, 'conqured') ? OCCUOASIS : UNOCCUOASIS;
                     else $thisVillageName = $vdata["name"];
                 ?>
-                <span class="coordinates coordinatesWithText">
-                <span class="coordText"><?php echo $thisVillageName; ?></span>
-                <span class="coordinatesWrapper">
-                <span class="coordinateY">(<?php echo $x; ?></span>
-                <span class="coordinatePipe">|</span>
-                <span class="coordinateX"><?php echo $y; ?>)</span>
-                </span></span>
-                <span class="clear">‎</span>
+                <a class="farmVillageName" href="karte.php?d=<?php echo $towref; ?>&c=<?php echo $generator->getMapCheck($towref); ?>">
+    <?php echo $thisVillageName; ?>
+</a>
                 </label>
-            </td>
-            <td class="ew"><?php if($oasistype == 0){ echo $vdata['pop']; }else{ echo "<center>-</center>"; }; ?></td>
-            <td class="distance"><?php echo $distance; ?></td>
-            <td class="troops">
+</td>
 
+<td class="troops">
 <?php
-    $start = ($session->tribe - 1) * 10 + 1;
-    $end = $start + 5;
-    
-    for($i = $start; $i <= $end; $i++){
-    	if(${'t'.($i - $start + 1)} > 0){
-    		echo '<div class="troopIcon"><img class="unit u'.$i.'" title="'.$technology->getUnitName($i).'" src="img/x.gif"><span class="troopIconAmount">'.${'t'.($i - $start + 1)}.'</span></div>';
-    	}
+$start = ($session->tribe - 1) * 10 + 1;
+$end = $start + 5;
+
+for($i = $start; $i <= $end; $i++){
+    if(${'t'.($i - $start + 1)} > 0){
+        echo '<div class="troopIcon"><img class="unit u'.$i.'" title="'.$technology->getUnitName($i).'" src="img/x.gif"><span class="troopIconAmount">'.number_format(${'t'.($i - $start + 1)}).'</span></div>';
     }
+}
 ?>
+</td>
+
+<td class="distance"><?php echo $distance; ?></td>
+            
+
+
             
 
                 
@@ -172,7 +216,7 @@ while($row2 = mysqli_fetch_array($getnotice)){
                 <div class="clear"></div>
             </td>
             <td class="action">
-                <a class="arrow" href="build.php?id=39&t=99&action=showSlot&eid=<?php echo $id; ?>"><?php echo (defined('LANG') && LANG === 'ar') ? 'تعديل' : 'edit'; ?></a>
+                <a class="farmEditIcon" href="build.php?id=39&t=99&action=showSlot&eid=<?php echo $id; ?>" title="تعديل">✏️</a>
             </td>
             </tr>
 <?php
@@ -197,8 +241,13 @@ while($row2 = mysqli_fetch_array($getnotice)){
 </div><br />
 <div class="addSlot">
     <div>
-        <button type="submit" class="trav_buttons" value="Start Raid"><?php echo (defined('LANG') && LANG === 'ar') ? 'بدء الهجوم' : 'Start Raid'; ?></button>
-        <span style="margin: 0 5px; font-weight: normal;">(1 <img src="img/x.gif" class="gold" alt="Gold"><?php echo (defined('LANG') && LANG === 'ar') ? ' / قرية' : ' / farm'; ?>)</span>
+        <button type="submit" class="trav_buttons farmBtn" value="Start Raid">بدء الهجوم</button>
+<span class="goldCost">
+    1 <img src="img/x.gif" class="gold" alt="Gold">
+</span>
+<span class="goldText">
+    لكل هجمة
+</span>
     </div>
 </div><br />
 <?php } ?>
@@ -229,6 +278,40 @@ if($create == 1){
 table#raidList thead td { transition: background-color 0.2s; }
 table#raidList thead td:hover { background-color: rgba(200,200,200,0.3); }
 tr.slotRow.dragging { background-color: #f0f0f0; opacity: 0.6; }
+
+.farmlistResultBox{
+    background:#f6fbe8;
+    border:1px solid #d7e4b2;
+    padding:8px 12px;
+    margin:10px 0 14px 0;
+    text-align:center;
+    font-size:13px;
+    line-height:24px;
+}
+
+.farmlistResultLine{
+    display:block;
+    font-weight:normal;
+}
+
+.farmlistResultLine.success{
+    color:#2f5f00;
+}
+
+.farmlistResultLine.failed{
+    color:#b30000;
+}
+
+.farmlistResultLine img.att2{
+    vertical-align:middle;
+    margin-left:4px;
+    margin-right:4px;
+}
+
+.failIcon{
+    font-size:15px;
+    vertical-align:middle;
+}
 </style>
 
 <script>
@@ -370,5 +453,13 @@ function submitRename(lid, checker) {
     f.submit();
 }
 </script>
-
+<?php
+unset($_SESSION['raidlist_protected_slots']);
+unset($_SESSION['raidlist_protection_blocked']);
+unset($_SESSION['raidlist_success_slots']);
+unset($_SESSION['raidlist_success_count']);
+unset($_SESSION['raidlist_blocked_sender']);
+unset($_SESSION['raidlist_blocked_target']);
+unset($_SESSION['raidlist_result_ready']);
+?>
 

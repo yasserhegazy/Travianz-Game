@@ -5,13 +5,42 @@
     echo "Row ".$i;
     }
 	
-    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata ORDER BY ap DESC, id DESC Limit 10");
+    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE ap > 0 ORDER BY ap DESC, id DESC Limit 10");
     $result2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE id = '".$session->alliance."' ORDER BY ap DESC, id DESC Limit 1");
 	?>
 	<table cellpadding="1" cellspacing="1">
 	<thead>
 		<tr>
-			<th><?php echo (defined('LANG') && LANG === 'ar') ? 'أفضل 10 تحالفات' : 'Top 10 Alliances'; ?><div id="submenu"><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>" href="statistiken.php?id=43"><img class="active btn_top10" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>"></a><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>" href="statistiken.php?id=42"><img class="btn_def" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>"></a><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>" href="statistiken.php?id=41"><img class="btn_off" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>"></a></div><div id="submenu2"><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'الرومان' : 'Romans'; ?>" href="statistiken.php?id=11"><img class="btn_v1" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'الرومان' : 'Romans'; ?>"></a><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'التيوتون' : 'Teutons'; ?>" href="statistiken.php?id=12"><img class="btn_v2" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'التيوتون' : 'Teutons'; ?>"></a><a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'الغال' : 'Gauls'; ?>" href="statistiken.php?id=13"><img class="btn_v3" src="img/x.gif" alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'الغال' : 'Gauls'; ?>"></a></div></th>
+			<th><?php echo (defined('LANG') && LANG === 'ar') ? 'أفضل 10 تحالفات' : 'Top 10 Alliances'; ?>
+			<div id="submenu">
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>"
+href="statistiken.php?id=43">
+<img class="btn_top10 active" src="img/x.gif"
+alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'العشرة الأوائل' : 'Top 10'; ?>">
+</a>
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>"
+href="statistiken.php?id=42">
+<img class="btn_def" src="img/x.gif"
+alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مدافع' : 'defender'; ?>">
+</a>
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>"
+href="statistiken.php?id=41">
+<img class="btn_off" src="img/x.gif"
+alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجم' : 'attacker'; ?>">
+</a>
+
+<a title="<?php echo (defined('LANG') && LANG === 'ar') ? 'سارق' : 'looter'; ?>"
+href="statistiken.php?id=44">
+<img class="btn_loot" src="img/x.gif"
+style="width:30px;height:30px;background:url('gpack/travian_t4/img/s/loot.gif') no-repeat 0 top;"
+alt="<?php echo (defined('LANG') && LANG === 'ar') ? 'سارق' : 'looter'; ?>">
+</a>
+
+</div>
+			</th>
 		</tr>
 	</thead>
 </table>
@@ -23,7 +52,7 @@
 			<th colspan="2"><?php echo (defined('LANG') && LANG === 'ar') ? 'مهاجمو اليوم' : 'Attackers of the day'; ?></th>
 		</tr>
 		<tr>
-			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'رقم' : 'No.'; ?></td>
+			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'المركز' : 'No.'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'التحالف' : 'Alliance'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'النقاط' : 'Points'; ?></td>
 		</tr>
@@ -48,15 +77,24 @@
 		</tr>
 <?php
     while($row = mysqli_fetch_array($result2))
-      {
-		if($row['id'] == $session->alliance) {
-		echo "<tr class=\"none\">"; } else { echo "<tr class=\"own hl\">"; }
-      echo "<td class=\"ra fc\">".$place."&nbsp;</td>";
-	  	if($row['id'] == $session->alliance) {
-		echo "<td class=\"pla\">".$row['tag']."</td>"; } else { echo "<td class=\"pla\"><a href='allianz.php?aid=".$row['id']."'>".$row['tag']."</a></td>"; }
-      echo "<td class=\"val lc\">".$row['ap']."</td>";
-      echo "</tr>";
-      }
+{
+    if($place == "?") {
+        echo "<tr class=\"own hl\">";
+    } else {
+        echo "<tr class=\"none\">";
+    }
+
+    echo "<td class=\"ra fc\">".$place."&nbsp;</td>";
+
+    if($place == "?") {
+        echo "<td class=\"pla\"><a href=\"allianz.php?aid=".$row['id']."\">".$row['tag']."</a></td>";
+    } else {
+        echo "<td class=\"pla\">".$row['tag']."</td>";
+    }
+
+    echo "<td class=\"val lc\">".$row['ap']."</td>";
+    echo "</tr>";
+}
 ?>
          </tbody>
 </table>
@@ -66,7 +104,7 @@
     for($i=1;$i<=0;$i++) {
     echo "Row ".$i;
     }
-    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata ORDER BY dp DESC, id DESC Limit 10");
+    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE dp > 0 ORDER BY dp DESC, id DESC Limit 10");
     $result2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE id = '".$session->alliance."' ORDER BY dp DESC Limit 1");
 ?>
 <table cellpadding="1" cellspacing="1" id="top10_defs" class="top10 row_table_data">
@@ -77,7 +115,7 @@
 			<th colspan="2"><?php echo (defined('LANG') && LANG === 'ar') ? 'مدافعو اليوم' : 'Defenders of the day'; ?></th>
 		</tr>
 		<tr>
-			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'رقم' : 'No.'; ?></td>
+			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'المركز' : 'No.'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'التحالف' : 'Alliance'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'النقاط' : 'Points'; ?></td>
 		</tr>
@@ -103,15 +141,24 @@
 		</tr>
 <?php
     while($row = mysqli_fetch_array($result2))
-      {
-     if($row['id'] == $session->alliance) {
-		echo "<tr class=\"none\">"; } else { echo "<tr class=\"own hl\">"; }
-      echo "<td class=\"ra fc\">".$place1."&nbsp;</td>";
-     if($row['id'] == $session->alliance) {
-		echo "<td class=\"pla\">".$row['tag']."</td>"; } else { echo "<td class=\"pla\"><a href='allianz.php?aid=".$row['id']."'>".$row['tag']."</a></td>"; }
-      echo "<td class=\"val lc\">".$row['dp']."</td>";
-      echo "</tr>";
-      }
+{
+    if($place1 == "?") {
+        echo "<tr class=\"own hl\">";
+    } else {
+        echo "<tr class=\"none\">";
+    }
+
+    echo "<td class=\"ra fc\">".$place1."&nbsp;</td>";
+
+    if($place1 == "?") {
+        echo "<td class=\"pla\"><a href=\"allianz.php?aid=".$row['id']."\">".$row['tag']."</a></td>";
+    } else {
+        echo "<td class=\"pla\">".$row['tag']."</td>";
+    }
+
+    echo "<td class=\"val lc\">".$row['dp']."</td>";
+    echo "</tr>";
+}
 ?>
          </tbody>
 </table>
@@ -120,7 +167,7 @@
     for($i=1;$i<=0;$i++) {
     echo "Row ".$i;
     }
-    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata ORDER BY clp DESC, id DESC Limit 10");
+    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE clp > 0 ORDER BY clp DESC, id DESC Limit 10");
     $result2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE id = '".$session->alliance."' ORDER BY clp DESC Limit 1");
 ?>
 <div class="clear"></div>
@@ -132,7 +179,7 @@
 			<th colspan="2"><?php echo (defined('LANG') && LANG === 'ar') ? 'مطورو اليوم' : 'Climbers of the day'; ?></th>
 		</tr>
 		<tr>
-			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'رقم' : 'No.'; ?></td>
+			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'المركز' : 'No.'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'التحالف' : 'Alliance'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'السكان' : 'Population'; ?></td>
 		</tr>
@@ -157,15 +204,24 @@
 		</tr>
 <?php
     while($row = mysqli_fetch_array($result2))
-      {
-		if($row['id'] == $session->alliance) {
-		echo "<tr class=\"none\">"; } else { echo "<tr class=\"own hl\">"; }
-      echo "<td class=\"ra fc\">".$place2."&nbsp;</td>";
-		if($row['id'] == $session->alliance) {
-		echo "<td class=\"pla\">".$row['tag']."</td>"; } else { echo "<td class=\"pla\"><a href='allianz.php?aid=".$row['id']."'>".$row['tag']."</a></td>"; }    
-          echo "<td class=\"val lc\">".$row['clp']."</td>";
-      echo "</tr>";
-      }
+{
+    if($place2 == "?") {
+        echo "<tr class=\"own hl\">";
+    } else {
+        echo "<tr class=\"none\">";
+    }
+
+    echo "<td class=\"ra fc\">".$place2."&nbsp;</td>";
+
+    if($place2 == "?") {
+        echo "<td class=\"pla\"><a href=\"allianz.php?aid=".$row['id']."\">".$row['tag']."</a></td>";
+    } else {
+        echo "<td class=\"pla\">".$row['tag']."</td>";
+    }
+
+    echo "<td class=\"val lc\">".$row['clp']."</td>";
+    echo "</tr>";
+}
 ?>
          </tbody>
 </table>
@@ -173,8 +229,8 @@
     for($i=1;$i<=0;$i++) {
     echo "Row ".$i;
     }
-    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata ORDER BY RR DESC, id DESC Limit 10");
-    $result2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE id = '".$session->alliance."' ORDER BY RR DESC Limit 1");
+    $result = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE (RR - Rc) > 0 ORDER BY (RR - Rc) DESC, id DESC Limit 10");
+    $result2 = mysqli_query($database->dblink,"SELECT * FROM ".TB_PREFIX."alidata WHERE id = '".$session->alliance."' ORDER BY (RR - Rc) DESC Limit 1");
 ?>
 <table cellpadding="1" cellspacing="1" id="top10_raiders" class="top10 row_table_data">
 	<thead>
@@ -184,7 +240,7 @@
 			<th colspan="2"><?php echo (defined('LANG') && LANG === 'ar') ? 'سارقو اليوم' : 'Robbers of the day'; ?></th>
 		</tr>
 		<tr>
-			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'رقم' : 'No.'; ?></td>
+			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'المركز' : 'No.'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'التحالف' : 'Alliance'; ?></td>
 			<td><?php echo (defined('LANG') && LANG === 'ar') ? 'الموارد' : 'Resources'; ?></td>
 		</tr>
@@ -193,7 +249,7 @@
 <?php
     while($row = mysqli_fetch_array($result))
       {
-	  if($row['RR'] >= 0) {
+	  if(($row['RR'] - $row['Rc']) > 0) {
 	  if($row['id']==$session->alliance) {
 	  $place3 = $i;
 	  }
@@ -201,7 +257,7 @@
 	  echo "<tr class=\"own hl\">"; } else { echo "<tr>"; }
       echo "<td class=\"ra fc\">".$i++.".&nbsp;</td>";
       echo "<td class=\"pla\"><a href='allianz.php?aid=".$row['id']."'>".$row['tag']."</a></td>";
-      echo "<td class=\"val lc\">".$row['RR']."</td>";
+      echo "<td class=\"val lc\">".($row['RR'] - $row['Rc'])."</td>";
       echo "</tr>";
       }
 	  }
@@ -211,15 +267,24 @@
 		</tr>
 <?php
     while($row = mysqli_fetch_array($result2))
-      {
-      if($row['id'] == $session->alliance) {
-		echo "<tr class=\"none\">"; } else { echo "<tr class=\"own hl\">"; }
-      echo "<td class=\"ra fc\">".$place3."&nbsp;</td>";
-      if($row['id'] == $session->alliance) {
-		echo "<td class=\"pla\">".$row['tag']."</td>"; } else { echo "<td class=\"pla\"><a href='allianz.php?aid=".$row['id']."'>".$row['tag']."</a></td>"; }
-      echo "<td class=\"val lc\">".$row['RR']."</td>";
-      echo "</tr>";
-      }
+{
+    if($place3 == "?") {
+        echo "<tr class=\"own hl\">";
+    } else {
+        echo "<tr class=\"none\">";
+    }
+
+    echo "<td class=\"ra fc\">".$place3."&nbsp;</td>";
+
+    if($place3 == "?") {
+        echo "<td class=\"pla\"><a href=\"allianz.php?aid=".$row['id']."\">".$row['tag']."</a></td>";
+    } else {
+        echo "<td class=\"pla\">".$row['tag']."</td>";
+    }
+
+    echo "<td class=\"val lc\">".($row['RR'] - $row['Rc'])."</td>";
+    echo "</tr>";
+}
 	  
 	//mysqli_close($con);
 ?>

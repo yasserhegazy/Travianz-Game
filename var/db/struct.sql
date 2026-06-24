@@ -1630,6 +1630,7 @@ CREATE TABLE IF NOT EXISTS `%PREFIX%users` (
   `is_bcrypt` tinyint(1) NOT NULL DEFAULT '0',
   `crop_reduction` int(11) UNSIGNED NOT NULL DEFAULT '0',
   `gold_protect` int(11) UNSIGNED NOT NULL DEFAULT '0',
+  `gold_protect_count` int(11) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `username` (`username`),
@@ -1766,6 +1767,32 @@ CREATE TABLE IF NOT EXISTS `%PREFIX%ww_attacks` (
 
 --
 -- Dumping data for table `%prefix%ww_attacks`
+--
+
+-- --------------------------------------------------------
+--
+-- Table structure for table `%prefix%winner_history`
+--
+
+CREATE TABLE IF NOT EXISTS `%PREFIX%winner_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `server_id` int(11) NOT NULL DEFAULT '1',
+  `winner_name` varchar(100) NOT NULL,
+  `tribe_name` varchar(50) NOT NULL DEFAULT '-',
+  `alliance_name` varchar(100) NOT NULL DEFAULT '-',
+  `winner_type` enum('player','natars') NOT NULL DEFAULT 'player',
+  `win_date` int(11) NOT NULL DEFAULT '0',
+  `is_hidden` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `server_id` (`server_id`),
+  KEY `win_date` (`win_date`),
+  KEY `is_hidden` (`is_hidden`),
+  KEY `server_hidden_date` (`server_id`, `is_hidden`, `win_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `%prefix%winner_history`
 --
 
 -- --------------------------------------------------------

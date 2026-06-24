@@ -33,43 +33,41 @@ if(!empty($oasisarray)){
 <a href="karte.php?d=<?php echo $oasisarray[$i]['wref']; ?>&c=<?php echo $generator->getMapCheck($oasisarray[$i]['wref']) ?>"><?php echo OCCUOASIS; ?></a>
 </td>
 <td class="aligned_coords">
-<div class="cox">(<?php echo $oasiscoor['x']; ?></div>
-<div class="pi">|</div>
-<div class="coy"><?php echo $oasiscoor['y']; ?>)</div>
+(<span class="coordX"><?php echo $oasiscoor['x']; ?></span><span style="color:#000;font-weight:normal;">|</span><span class="coordY"><?php echo $oasiscoor['y']; ?></span>)
 </td>
 <td class="zp"><?php echo floor($oasisarray[$i]['loyalty']); ?>%</td>
 <td class="res"><?php
 	switch($oasisarray[$i]['type']) {
 		case 1:
 		case 2:
-			?><img class="r1" src="img/x.gif" alt="Wood" title="<?php echo LUMBER; ?>" />+25%<?php
+			?><img class="r1" src="img/x.gif" alt="Wood" title="<?php echo LUMBER; ?>" />+100%<?php
 			break;
 		case 3:
-			?><img class="r1" src="img/x.gif" alt="Wood" title="<?php echo LUMBER; ?>" />+25%
-			<img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+25%<?php
+			?><img class="r1" src="img/x.gif" alt="Wood" title="<?php echo LUMBER; ?>" />+75%
+			<img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+75%<?php
 			break;
 		case 4:
 		case 5:
-			?><img class="r2" src="img/x.gif" alt="Clay" title="<?php echo CLAY; ?>" />+25%<?php
+			?><img class="r2" src="img/x.gif" alt="Clay" title="<?php echo CLAY; ?>" />+100%<?php
 			break;
 		case 6:
-			?><img class="r2" src="img/x.gif" alt="Clay" title="<?php echo CLAY; ?>" />+25%
-			<img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+25%<?php
+			?><img class="r2" src="img/x.gif" alt="Clay" title="<?php echo CLAY; ?>" />+75%
+			<img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+75%<?php
 			break;
 		case 7:
 		case 8:
-			?><img class="r3" src="img/x.gif" alt="Iron" title="<?php echo IRON; ?>" />+25%<?php
+			?><img class="r3" src="img/x.gif" alt="Iron" title="<?php echo IRON; ?>" />+100%<?php
 			break;
 		case 9:
-			?><img class="r3" src="img/x.gif" alt="Iron" title="<?php echo IRON; ?>" />+25%
-			<img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+25%<?php
+			?><img class="r3" src="img/x.gif" alt="Iron" title="<?php echo IRON; ?>" />+75%
+			<img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+75%<?php
 			break;
 		case 10:
 		case 11:
-			?><img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+25%<?php
+			?><img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+100%<?php
 			break;
 		case 12:
-			?><img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+50%<?php
+			?><img class="r4" src="img/x.gif" alt="Crop" title="<?php echo CROP; ?>" />+150%<?php
 			break;
 	}
 ?></td>

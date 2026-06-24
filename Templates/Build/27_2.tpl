@@ -19,13 +19,14 @@
         <table id="show_artefacts" cellpadding="1" cellspacing="1">
     		<thead>
     			<tr>
-			    	<th colspan="4"><?php echo SMALL_ARTEFACTS; ?></th>
+			    	<th colspan="5"><?php echo SMALL_ARTEFACTS; ?></th>
     			</tr>
     			<tr>
     				<td></td>
 	    			<td><?php echo NAME; ?></td>
+					<td><?php echo VILLAGE; ?></td>
 	    			<td><?php echo PLAYER; ?></td>
-	    			<td><?php echo ALLIANCE; ?></td>
+	    			<td><?php echo DISTANCE; ?></td>
     			</tr>
     		</thead>
     		<tbody>
@@ -33,12 +34,12 @@
             
             $artifactsArray = $database->getArtifactsBysize(1);
             if(count($artifactsArray) == 0) {
-                echo '<td colspan="4" class="none">'.NO_ARTEFACTS.'</td>';
+                echo '<td colspan="5" class="none">'.NO_ARTEFACTS.'</td>';
             } else {
                 $previous = "";
                 foreach($artifactsArray as $artifact){
                     
-                    if($previous != "" && $previous != $artifact['type']) echo '<tr><td colspan="4"></td></tr>';
+                    if($previous != "" && $previous != $artifact['type']) echo '<tr><td colspan="5"></td></tr>';
                     $previous = $artifact['type'];
                     
                     echo '<tr>
@@ -46,8 +47,9 @@
                               <td class="nam">
                                   <a href="build.php?id='.$id.'&show='.$artifact['id'].'">'.$artifact['name'] . '</a> <span class="bon">'.$artifact['effect'].'</span><div class="info">'.TREASURY.' <b>10</b>, '.EFFECT.' <b>'.ACCOUNT.'</b></div>
                               </td>
+							  <td class="vil"><a href="karte.php?d='.$artifact['vref'].'">'.$database->getVillageField($artifact['vref'],"name").'</a></td>
                               <td class="pla"><a href="karte.php?d='.$artifact['vref'].'&c='.$generator->getMapCheck($artifact['vref']).'">'.$database->getUserField($artifact['owner'], "username", 0).'</a></td>
-                              <td class="al"><a href="allianz.php?aid='.$database->getUserField($artifact['owner'], "alliance", 0).'">'.$database->getAllianceName($database->getUserField($artifact['owner'], "alliance", 0)).'</a></td>
+                              <td class="dist">'.$database->getDistance($village->coor['x'], $village->coor['y'], $database->getCoor($artifact['vref'])['x'], $database->getCoor($artifact['vref'])['y']).'</td>
                           </tr>';
                 }
             }

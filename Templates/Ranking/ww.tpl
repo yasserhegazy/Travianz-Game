@@ -1,7 +1,7 @@
 <?php 
 if (WW == True) 
 { 
-    $result = mysqli_query($database->dblink,"select " . TB_PREFIX . "users.id, " . TB_PREFIX . "users.username," . TB_PREFIX . "users.alliance, " . TB_PREFIX . "fdata.wwname, " . TB_PREFIX . "fdata.f99, " . TB_PREFIX . "vdata.name, " . TB_PREFIX . "fdata.vref  
+    $result = mysqli_query($database->dblink,"select " . TB_PREFIX . "users.id, " . TB_PREFIX . "users.username," . TB_PREFIX . "users.alliance, " . TB_PREFIX . "fdata.f99, " . TB_PREFIX . "vdata.name, " . TB_PREFIX . "fdata.vref  
                         FROM " . TB_PREFIX . "users  
                         INNER JOIN " . TB_PREFIX . "vdata ON " . TB_PREFIX . "users.id = " . TB_PREFIX . "vdata.owner 
                         INNER JOIN " . TB_PREFIX . "fdata ON " . TB_PREFIX . "fdata.vref = " . TB_PREFIX . "vdata.wref 
@@ -33,7 +33,7 @@ if (WW == True)
         <tr> 
               <td><?php echo ++$count; ?>.</td> 
             <td><?php echo "<a href=\"karte.php?d=" . $row['vref'] . "&amp;c=" . $generator->getMapCheck($row['vref']) . "\">"; ?><?php echo $row['username']; ?></a></td> 
-              <td><?php echo $row['wwname']; ?></td> 
+              <td><a href="karte.php?d=<?php echo $row['vref']; ?>&amp;c=<?php echo $generator->getMapCheck($row['vref']); ?>"><?php echo $row['name']; ?></a></td> 
             <td><a href="allianz.php?aid=<?php echo $ally['id']; ?>"><?php echo $ally['tag']; ?></a></td> 
             <td><?php echo $row['f99']; ?></td> 
             <?php if ($row2['attack_time'] != 0): ?> 

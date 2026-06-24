@@ -189,8 +189,54 @@ class Units {
         
         if(isset($id)) {
             //check if the attacked village/oasis' owner is under beginners protection
-            if($database->hasBeginnerProtection($id) == 1) return "Player is under beginners protection. You can't attack him";
-            
+            $isOasisTarget = $database->isVillageOases($id);
+// إذا المرسل نفسه تحت الحماية
+if($database->hasBeginnerProtection($village->wid)) {
+
+    // تعزيز
+    if($post['c'] == 2) {
+
+        if(!$isOasisTarget) {
+            $targetOwner = (int)$database->getVillageField($id, "owner");
+
+            if($targetOwner != (int)$session->uid) {
+                return "أنت تحت الحماية، لا يمكنك تعزيز لاعبين آخرين قبل إزالة الحماية.";
+            }
+        }
+
+        if($isOasisTarget) {
+           $oasisConquered = (int)$database->getOasisField($id, "conqured");
+
+if($oasisConquered > 0 && $oasisConquered != (int)$village->wid) {
+                return "أنت تحت الحماية، لا يمكنك تعزيز واحة مملوكة للاعب آخر.";
+            }
+        }
+    }
+
+// هجوم كامل أو نهب
+if($post['c'] != 2) {
+
+    if(!$isOasisTarget) {
+        $targetOwner = (int)$database->getVillageField($id, "owner");
+
+        // مسموح تهجم/تنهب قراك وأنت تحت الحماية
+        if($targetOwner == (int)$session->uid) {
+            // لا تمنع
+        } else {
+            return "أنت تحت الحماية، يجب إزالة الحماية أولاً قبل مهاجمة اللاعبين.";
+        }
+    }
+
+    if($isOasisTarget) {
+        $oasisConquered = (int)$database->getOasisField($id, "conqured");
+
+        // واحة غير محتلة: مسموح
+        if($oasisConquered > 0 && $oasisConquered != (int)$village->wid) {
+            return "أنت تحت الحماية، لا يمكنك مهاجمة واحة مملوكة للاعب.";
+        }
+    }
+}
+
             //check if it's an oasis or not
             $villageInfo = (!$isOasis) ? $database->getVillage($id) : $database->getOasisV($id);
             
@@ -209,13 +255,36 @@ class Units {
             //check if attacking same village that units are in
             if($id == $village->wid) return "You cant attack same village you are sending from.";
         }
-        
+        // الهدف تحت الحماية: لا يستقبل أي قوات من لاعبين آخرين
+$targetOwner = 0;
+
+if(!$isOasisTarget) {
+    $targetOwner = (int)$database->getVillageField($id, "owner");
+} else {
+    $oasisConquered = (int)$database->getOasisField($id, "conqured");
+
+    if($oasisConquered > 0) {
+        $targetOwner = (int)$database->getVillageField($oasisConquered, "owner");
+    }
+}
+
+if($targetOwner > 0 && $targetOwner != (int)$session->uid) {
+    if($database->hasUserBeginnerProtection($targetOwner)) {
+        return "لا يمكنك إرسال قوات إلى لاعب تحت الحماية.";
+    }
+}
+
+// قرية معجزة التتار محمية تماماً ولا يمكن استهدافها (فحص مبكر على مستوى نموذج الإرسال)
+if(!$isOasisTarget && $database->isProtectedNatarWonder($id)) {
+    return "لا يمكن مهاجمة معجزة التتار، فهي محمية تماماً ولا يمكن احتلالها.";
+}
         //no errors, we can add the additional information to the post array
         array_push($post, $id, $villageInfo['name'], $villageInfo['owner'], 0);
         
         return "";
     }
-    
+    }
+	
     public function returnTroops($wref, $mode = 0) {
         global $database;
         
@@ -270,7 +339,48 @@ class Units {
         if($data['u11'] > $village->unitarray['hero']) $form->addError("error", "You can't send more units than you have");
         if($data['u11'] < 0) $form->addError("error", "You can't send negative units.");   
         if($data['type'] != 1 && $post['spy'] != 0) $post['spy'] = 0;
-        
+        $targetVid = isset($data['to_vid']) ? (int)$data['to_vid'] : 0;
+$moveType = isset($data['type']) ? (int)$data['type'] : 0;
+$isOasisTarget = $database->isVillageOases($targetVid);
+
+if($targetVid > 0) {
+
+    $targetOwner = 0;
+
+    if(!$isOasisTarget) {
+    $targetOwner = (int)$database->getVillageField($targetVid, "owner");
+} else {
+    $oasisConquered = (int)$database->getOasisField($targetVid, "conqured");
+
+    if($oasisConquered > 0) {
+        $targetOwner = (int)$database->getVillageField($oasisConquered, "owner");
+    } else {
+        $targetOwner = 0;
+    }
+}
+
+    // The immune Natar Wonder village (معجزة التتار) cannot be targeted by any player troops.
+    if(!$isOasisTarget && $database->isProtectedNatarWonder($targetVid)) {
+        $form->addError("error", "لا يمكن مهاجمة معجزة التتار، فهي محمية تماماً ولا يمكن احتلالها.");
+    }
+
+    $senderProtected = $database->hasBeginnerProtection($village->wid);
+    $targetProtected = ($targetOwner > 0) ? $database->hasUserBeginnerProtection($targetOwner) : false;
+
+    // المرسل محمي: لا يرسل قوات للخارج، فقط داخل قراه
+    if($senderProtected) {
+        if($targetOwner > 0 && $targetOwner != (int)$session->uid) {
+            $form->addError("error", "أنت تحت الحماية، لا يمكنك إرسال قوات خارج قراك قبل إزالة الحماية.");
+        }
+    }
+
+    // الهدف محمي: لا يستقبل أي قوات من غيره
+    if($targetProtected) {
+        if($targetOwner != (int)$session->uid) {
+            $form->addError("error", "لا يمكنك إرسال قوات إلى لاعب تحت الحماية.");
+        }
+    }
+}
         if($form->returnErrors() > 0){
             $_SESSION['errorarray'] = $form->getErrors();
             $_SESSION['valuearray'] = $_POST;
@@ -398,9 +508,11 @@ class Units {
             $checkoexist = $database->checkOasisExist($data['to_vid']);
             if($checkexist || $checkoexist) {
                 $database->addMovement(3, $village->wid, $data['to_vid'], $reference, time(), ($time + time()));
-                if ($database->hasBeginnerProtection($village->wid) == 1 && $checkexist) {
-                    mysqli_query($database->dblink, "UPDATE " . TB_PREFIX . "users SET protect = 0 WHERE id = ".(int) $session->uid);
-                }
+/*                
+				if ($database->hasBeginnerProtection($village->wid) == 1 && $checkexist) {
+                    mysqli_query($database->dblink, "UPDATE " . TB_PREFIX . "users SET protect = 0, gold_protect = 0 WHERE id = ".(int)$session->uid);
+*/					
+                
             }
             
             if($form->returnErrors() > 0) {
@@ -768,6 +880,12 @@ class Units {
     	}
     	
 		$tribe = $session->tribe;
+		$successSlots = [];
+        $protectedSlots = [];
+        $successCount = 0;
+        $blockedCount = 0;
+		$blockedBySenderProtection = 0;
+        $blockedByTargetProtection = 0;
 
 		foreach($slots as $slot){
 			$raidList = $database->getRaidList($slot);
@@ -781,7 +899,54 @@ class Units {
 			
 			$sid = $raidList['id'];
 			$wref = $raidList['towref'];
-			
+			$isOasisTarget = $database->isVillageOases($wref);
+            $targetOwner = 0;
+
+// تحديد مالك الهدف
+if(!$isOasisTarget) {
+    $targetOwner = (int)$database->getVillageField($wref, "owner");
+} else {
+    $oasisConquered = (int)$database->getOasisField($wref, "conqured");
+
+    if($oasisConquered > 0) {
+        $targetOwner = (int)$database->getVillageField($oasisConquered, "owner");
+    }
+}
+
+// إذا المرسل محمي: يسمح فقط بالواحات المهجورة أو أملاكه
+if($database->hasBeginnerProtection($getFLData['wref'])) {
+    if(!$isOasisTarget && $targetOwner != (int)$session->uid) {
+        $protectedSlots[] = (int)$sid;
+        $blockedCount++;
+		$blockedBySenderProtection++;
+        continue;
+    }
+
+    if($isOasisTarget && $targetOwner > 0 && $targetOwner != (int)$session->uid) {
+        $protectedSlots[] = (int)$sid;
+        $blockedCount++;
+		$blockedBySenderProtection++;
+        continue;
+    }
+}
+
+// إذا الهدف محمي: لا يستقبل هجمات من الآخرين
+if($targetOwner > 0 && $targetOwner != (int)$session->uid) {
+    if($database->hasUserBeginnerProtection($targetOwner)) {
+        $protectedSlots[] = (int)$sid;
+        $blockedCount++;
+		$blockedByTargetProtection++;
+        continue;
+    }
+}
+
+// قرية معجزة التتار محمية تماماً ولا يمكن استهدافها بقوائم الإغارة
+if(!$isOasisTarget && $database->isProtectedNatarWonder($wref)) {
+    $protectedSlots[] = (int)$sid;
+    $blockedCount++;
+    $blockedByTargetProtection++;
+    continue;
+}
 			for($i = 1; $i <= 6; $i++) ${'t'.$i} = $raidList['t'.$i];
 
 			if(!$database->isVillageOases($wref)) $villageOwner = $database->getVillageField($wref, 'owner');
@@ -836,12 +1001,22 @@ class Units {
 
 					$database->modifyUnit($getFLData['wref'], $troops, $amounts, $modes);
 					$database->addMovement(3, $getFLData['wref'], $data['to_vid'], $reference, time(), ($time + time()));
-					
+					$successSlots[] = (int)$sid;
+                    $successCount++;
 					//Prevent re-use of the same attack via re-POSTing the same data
 					$database->remA2b($id);
 				}
 			}
 		}
+		$_SESSION['raidlist_result_ready'] = 1;
+		$_SESSION['raidlist_success_slots'] = $successSlots;
+        $_SESSION['raidlist_success_count'] = $successCount;
+
+        $_SESSION['raidlist_protected_slots'] = $protectedSlots;
+        $_SESSION['raidlist_protection_blocked'] = $blockedCount;
+		
+		$_SESSION['raidlist_blocked_sender'] = $blockedBySenderProtection;
+        $_SESSION['raidlist_blocked_target'] = $blockedByTargetProtection;
 		header("Location: build.php?id=39&t=99");
 		exit();
     }

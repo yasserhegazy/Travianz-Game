@@ -122,7 +122,12 @@ div.c1 {text-align: center}
     <div id="content" class="village1">
         <h1><?php echo ANNOUNCEMENT; ?></h1>
 		<br />
-        <h3>Hi <?php echo $session->username; ?>,</h3>
+<h3 style="font-size:22px; font-weight:bold;">
+مرحبًا بك أيها القائد
+<span style="color:#159447;">
+<?php echo $session->username; ?>
+</span>
+</h3>
         <?php include("Templates/text.tpl"); ?>
         <div class="c1">
 		<br />

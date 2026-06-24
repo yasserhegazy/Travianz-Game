@@ -63,17 +63,22 @@ if(file_exists($envPath)) {
     }
 }
 
-$dbHost = $envDefaults['DB_HOST'] ?? '127.0.0.1';
+$dbHost = $envDefaults['DB_HOST'] ?? 'db';
 $dbPort = $envDefaults['DB_PORT'] ?? '3306';
 $dbUser = $envDefaults['MARIADB_USER'] ?? ($envDefaults['MYSQL_USER'] ?? '');
 $dbPass = $envDefaults['MARIADB_PASSWORD'] ?? ($envDefaults['MYSQL_PASSWORD'] ?? '');
 $dbName = $envDefaults['MARIADB_DATABASE'] ?? ($envDefaults['MYSQL_DATABASE'] ?? '');
 
+$dbPrefix = $envDefaults['DB_PREFIX'] ?? '';
 if(empty($_SESSION['install_random_prefix'])) {
-    try {
-        $_SESSION['install_random_prefix'] = 's' . substr(bin2hex(random_bytes(2)), 0, 4) . '_';
-    } catch (Throwable $e) {
-        $_SESSION['install_random_prefix'] = 's' . str_pad((string) mt_rand(0, 9999), 4, '0', STR_PAD_LEFT) . '_';
+    if ($dbPrefix !== '') {
+        $_SESSION['install_random_prefix'] = $dbPrefix;
+    } else {
+        try {
+            $_SESSION['install_random_prefix'] = 's' . substr(bin2hex(random_bytes(2)), 0, 4) . '_';
+        } catch (Throwable $e) {
+            $_SESSION['install_random_prefix'] = 's' . str_pad((string) mt_rand(0, 9999), 4, '0', STR_PAD_LEFT) . '_';
+        }
     }
 }
 $dbPrefix = $_SESSION['install_random_prefix'];
@@ -164,11 +169,11 @@ $dbPrefix = $_SESSION['install_random_prefix'];
         </tr>
         <tr>
         	<td><span class="f9 c6">WW spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_ww_spawn_time" id="natars_ww_spawn_time" value="260" size="3"></td>
+            <td width="140"><input type="text" name="natars_ww_spawn_time" id="natars_ww_spawn_time" value="20" size="3"></td>
         </tr>
         <tr>
         	<td><span class="f9 c6">WW building plan spawn (Days):</span></td>
-            <td width="140"><input type="text" name="natars_ww_building_plan_spawn_time" id="natars_ww_building_plan_spawn_time" value="260" size="3"></td>           
+            <td width="140"><input type="text" name="natars_ww_building_plan_spawn_time" id="natars_ww_building_plan_spawn_time" value="20" size="3"></td>
         </tr>      
         <tr>
             <td><span class="f9 c6">World size:</span></td>
